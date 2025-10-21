@@ -1,0 +1,31 @@
+{
+  "name": "efi-frontend",
+  "version": "1.0.0",
+  "description": "Sistema de Gestión de Pedidos y Menú de un Restaurante",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MatiJFernandez/EFI-FrontEnd.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/MatiJFernandez/EFI-FrontEnd/issues"
+  },
+  "homepage": "https://github.com/MatiJFernandez/EFI-FrontEnd#readme",
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.4",
+    "vite": "^7.1.11"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  }
+}
