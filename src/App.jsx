@@ -1,28 +1,30 @@
-import { useState } from 'react'
-import './App.css'
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './components/Home';
+import Dashboard from './components/Dashboard';
+import Login from './components/Login';
+import PrivateRoute from './components/PrivateRoute';
+import './App.css';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Sistema de Gestión de Restaurante</h1>
-        <p>Sistema de Gestión de Pedidos y Menú</p>
-        <div className="card">
-          <button onClick={() => setCount((count) => count + 1)}>
-            Contador: {count}
-          </button>
-          <p>
-            Edita <code>src/App.jsx</code> y guarda para probar HMR
-          </p>
-        </div>
-        <p className="read-the-docs">
-          Haz clic en el logo de Vite para aprender más
-        </p>
-      </header>
-    </div>
-  )
+    <Router>
+      <div className="App">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+        </Routes>
+      </div>
+    </Router>
+  );
 }
 
-export default App
+export default App;
