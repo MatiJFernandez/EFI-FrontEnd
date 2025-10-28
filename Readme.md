@@ -4,14 +4,19 @@ Front-End desarrollado con **React** y **Vite**
 
 ## 🚀 Tecnologías Utilizadas
 
-- **React 18** - Biblioteca de JavaScript para construir interfaces de usuario
+- **React 19** - Biblioteca de JavaScript para construir interfaces de usuario
 - **Vite** - Herramienta de construcción rápida para desarrollo frontend
+- **Material UI (MUI)** - Biblioteca de componentes UI
+- **React Router DOM** - Enrutamiento de React
+- **Axios** - Cliente HTTP para peticiones a la API
 - **JavaScript (ES6+)** - Lenguaje de programación moderno
 
 ## 📋 Requisitos Previos
 
-- Node.js (versión 16 o superior)
+- **Node.js** (versión 20.19+ o 22.12+ para Vite 7.0)
 - npm o yarn
+
+> ⚠️ **Importante**: Si tienes Node.js 22.2.0, necesitas actualizar a una versión compatible. Vite 7.0 requiere Node.js 20.19+ o 22.12+.
 
 ## 🛠️ Instalación
 
@@ -51,30 +56,56 @@ Vista previa de la construcción de producción
 ```
 src/
 ├── components/     # Componentes reutilizables
+│   ├── common/    # Componentes comunes (Button, Loading, Modal)
+│   └── layout/    # Componentes de layout (Header, Footer, Navbar, Sidebar)
 ├── pages/         # Páginas de la aplicación
-├── hooks/         # Custom hooks
-├── utils/         # Funciones utilitarias
-├── assets/        # Recursos estáticos
-├── styles/        # Archivos de estilos
+│   ├── auth/      # Páginas de autenticación (Login, Register)
+│   ├── dishes/    # Páginas de gestión de platos
+│   ├── orders/    # Páginas de gestión de pedidos
+│   └── tables/    # Páginas de gestión de mesas
+├── contexts/      # Contextos de React (AuthContext, DishesContext)
+├── services/      # Servicios y lógica de negocio
+│   ├── api/       # Configuración de Axios
+│   ├── auth/      # Servicios de autenticación
+│   ├── menu/      # Servicios de menú
+│   └── orders/    # Servicios de pedidos
 ├── App.jsx        # Componente principal
 ├── main.jsx       # Punto de entrada
+├── theme.js       # Tema de Material UI
+├── App.css        # Estilos de la aplicación
 └── index.css      # Estilos globales
 ```
 
-## 🎯 Funcionalidades
+## ⚙️ Configuración de la API
+
+El proyecto utiliza Axios configurado en `src/services/api/api.js`. 
+
+Para configurar la URL del backend, crea un archivo `.env` en la raíz del proyecto:
+
+```bash
+VITE_API_BASE_URL=http://localhost:3001/api
+```
+
+Si no defines esta variable, por defecto usará `http://localhost:3001/api`.
+
+## 🎯 Funcionalidades Implementadas
 
 - ✅ Configuración inicial de Vite + React
+- ✅ Instalación y configuración de Material UI
+- ✅ Configuración de React Router con rutas públicas/privadas
+- ✅ Configuración de Axios con interceptores de autenticación
 - 🔄 Hot Module Replacement (HMR)
 - 📱 Diseño responsivo
 - 🎨 Estilos CSS personalizados
 
-## 📝 Próximas Funcionalidades
+## 📝 Próximas Funcionalidades (Sprint 1.2)
 
-- [ ] Sistema de autenticación
+- [ ] Crear AuthContext básico (login/logout)
+- [ ] Crear componentes Navbar y PrivateRoute
+- [ ] Crear páginas Login y Register (solo UI)
 - [ ] Gestión de menú
 - [ ] Sistema de pedidos
 - [ ] Panel de administración
-- [ ] Integración con API backend
 
 ## 🤝 Contribución
 
