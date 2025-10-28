@@ -2,6 +2,8 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './components/Home';
 import Dashboard from './components/Dashboard';
+import AdminDashboard from './components/AdminDashboard';
+import ModeratorDashboard from './components/ModeratorDashboard';
 import Login from './components/Login';
 import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
@@ -26,6 +28,22 @@ function App() {
               element={
                 <PrivateRoute>
                   <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <PrivateRoute requiredRole="admin">
+                  <AdminDashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/moderator"
+              element={
+                <PrivateRoute requiredRole="moderator">
+                  <ModeratorDashboard />
                 </PrivateRoute>
               }
             />
