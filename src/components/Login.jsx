@@ -35,14 +35,11 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const success = await login(formData);
-      if (success) {
-        navigate('/dashboard');
-      } else {
-        setError('Credenciales inválidas');
-      }
+      await login(formData);
+      navigate('/dashboard');
     } catch (err) {
-      setError('Error al iniciar sesión. Intente nuevamente.');
+      const errorMessage = err.message || 'Error al iniciar sesión. Verifique sus credenciales.';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
