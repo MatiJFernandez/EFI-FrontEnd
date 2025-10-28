@@ -88,6 +88,40 @@ export const authService = {
    */
   isAuthenticated() {
     return !!localStorage.getItem('token');
+  },
+
+  /**
+   * Solicita restablecimiento de contraseña
+   * @param {string} email - Email del usuario
+   * @returns {Promise<Object>} Resultado de la solicitud
+   */
+  async forgotPassword(email) {
+    try {
+      const response = await api.post('/auth/forgot-password', { email });
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      const errorMessage = error.response?.data?.message || 'Error al procesar la solicitud';
+      return { success: false, error: errorMessage };
+    }
+  },
+
+  /**
+   * Restablece la contraseña con el token recibido por email
+   * @param {Object} resetData - Datos para restablecer la contraseña
+   * @param {string} resetData.token - Token de restablecimiento
+   * @param {string} resetData.password - Nueva contraseña
+   * @returns {Promise<Object>} Resultado del restablecimiento
+   */
+  async resetPassword(resetData) {
+    try {
+      const response = await api.post('/auth/reset-password', resetData);
+      return { success: true, message: response.data.message };
+    } catch (error) {
+      console.error('Reset password error:', error);
+      const errorMessage = error.response?.data?.message || 'Error al restablecer la contraseña';
+      return { success: false, error: errorMessage };
+    }
   }
 };
 
