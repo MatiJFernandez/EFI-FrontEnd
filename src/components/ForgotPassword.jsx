@@ -11,10 +11,12 @@ import {
   Link as MuiLink
 } from '@mui/material';
 import authService from '../services/auth/authService';
+import { validateField } from '../utils/validations';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -22,6 +24,13 @@ const ForgotPassword = () => {
     e.preventDefault();
     setError('');
     setSuccess(false);
+
+    const validationError = validateField('email', email);
+    if (validationError) {
+      setEmailError(validationError);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -93,7 +102,13 @@ const ForgotPassword = () => {
               autoComplete="email"
               autoFocus
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                const validationError = validateField('email', e.target.value);
+                setEmailError(validationError);
+              }}
+              error={!!emailError}
+              helperText={emailError}
             />
             
             <Button

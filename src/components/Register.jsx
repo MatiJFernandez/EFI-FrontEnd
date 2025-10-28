@@ -12,6 +12,7 @@ import {
   Link as MuiLink,
   Grid
 } from '@mui/material';
+import { validateField, validateForm } from '../utils/validations';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -22,6 +23,7 @@ const Register = () => {
     password: '',
     confirmPassword: ''
   });
+  const [formErrors, setFormErrors] = useState({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -29,22 +31,24 @@ const Register = () => {
   const { login } = useAuth();
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: value
+    }));
+    
+    // Validación en tiempo real
+    const fieldError = validateField(name, value, formData);
+    setFormErrors(prev => ({
+      ...prev,
+      [name]: fieldError
+    }));
   };
 
-  const validateForm = () => {
-    if (formData.password !== formData.confirmPassword) {
-      setError('Las contraseñas no coinciden');
-      return false;
-    }
-    if (formData.password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
-      return false;
-    }
-    return true;
+  const isFormValid = () => {
+    const errors = validateForm(formData);
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleRegister = async (e) => {
@@ -53,7 +57,7 @@ const Register = () => {
     setSuccess(false);
     setLoading(true);
 
-    if (!validateForm()) {
+    if (!isFormValid()) {
       setLoading(false);
       return;
     }
@@ -133,6 +137,8 @@ const Register = () => {
                   autoFocus
                   value={formData.firstName}
                   onChange={handleChange}
+                  error={!!formErrors.firstName}
+                  helperText={formErrors.firstName}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -145,6 +151,8 @@ const Register = () => {
                   autoComplete="family-name"
                   value={formData.lastName}
                   onChange={handleChange}
+                  error={!!formErrors.lastName}
+                  helperText={formErrors.lastName}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -158,6 +166,8 @@ const Register = () => {
                   type="email"
                   value={formData.email}
                   onChange={handleChange}
+                  error={!!formErrors.email}
+                  helperText={formErrors.email}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -170,6 +180,8 @@ const Register = () => {
                   autoComplete="username"
                   value={formData.username}
                   onChange={handleChange}
+                  error={!!formErrors.username}
+                  helperText={formErrors.username}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -183,6 +195,8 @@ const Register = () => {
                   autoComplete="new-password"
                   value={formData.password}
                   onChange={handleChange}
+                  error={!!formErrors.password}
+                  helperText={formErrors.password}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -196,6 +210,8 @@ const Register = () => {
                   autoComplete="new-password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
+                  error={!!formErrors.confirmPassword}
+                  helperText={formErrors.confirmPassword}
                 />
               </Grid>
             </Grid>

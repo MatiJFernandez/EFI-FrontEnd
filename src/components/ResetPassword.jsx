@@ -11,6 +11,7 @@ import {
   Link as MuiLink
 } from '@mui/material';
 import authService from '../services/auth/authService';
+import { validateField, validateForm } from '../utils/validations';
 
 const ResetPassword = () => {
   const [formData, setFormData] = useState({
@@ -18,6 +19,7 @@ const ResetPassword = () => {
     confirmPassword: ''
   });
   const [error, setError] = useState('');
+  const [formErrors, setFormErrors] = useState({});
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [tokenValid, setTokenValid] = useState(false);
@@ -38,22 +40,24 @@ const ResetPassword = () => {
   }, [resetToken]);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: value
+    }));
+    
+    // Validación en tiempo real
+    const fieldError = validateField(name, value, formData);
+    setFormErrors(prev => ({
+      ...prev,
+      [name]: fieldError
+    }));
   };
 
-  const validateForm = () => {
-    if (formData.password !== formData.confirmPassword) {
-      setError('Las contraseñas no coinciden');
-      return false;
-    }
-    if (formData.password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres');
-      return false;
-    }
-    return true;
+  const isFormValid = () => {
+    const errors = validateForm(formData);
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const handleSubmit = async (e) => {
@@ -61,7 +65,7 @@ const ResetPassword = () => {
     setError('');
     setSuccess(false);
 
-    if (!validateForm()) {
+    if (!isFormValid()) {
       return;
     }
 
@@ -175,6 +179,8 @@ const ResetPassword = () => {
               autoComplete="new-password"
               value={formData.password}
               onChange={handleChange}
+              error={!!formErrors.password}
+              helperText={formErrors.password}
             />
             <TextField
               margin="normal"
@@ -186,6 +192,8 @@ const ResetPassword = () => {
               id="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
+              error={!!formErrors.confirmPassword}
+              helperText={formErrors.confirmPassword}
             />
             
             <Button

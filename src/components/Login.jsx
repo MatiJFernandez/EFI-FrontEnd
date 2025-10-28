@@ -11,27 +11,45 @@ import {
   Alert,
   Link as MuiLink
 } from '@mui/material';
+import { validateField, validateForm } from '../utils/validations';
 
 const Login = () => {
   const [formData, setFormData] = useState({
     username: '',
     password: ''
   });
+  const [formErrors, setFormErrors] = useState({});
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    setFormData(prevData => ({
+      ...prevData,
+      [name]: value
+    }));
+    
+    // Validación en tiempo real
+    const fieldError = validateField(name, value, formData);
+    setFormErrors(prev => ({
+      ...prev,
+      [name]: fieldError
+    }));
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    
+    // Validar todo el formulario antes de enviar
+    const errors = validateForm(formData);
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -87,6 +105,8 @@ const Login = () => {
               autoFocus
               value={formData.username}
               onChange={handleChange}
+              error={!!formErrors.username}
+              helperText={formErrors.username}
             />
             <TextField
               margin="normal"
@@ -99,6 +119,8 @@ const Login = () => {
               autoComplete="current-password"
               value={formData.password}
               onChange={handleChange}
+              error={!!formErrors.password}
+              helperText={formErrors.password}
             />
             <Button
               type="submit"
