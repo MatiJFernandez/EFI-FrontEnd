@@ -1,4 +1,5 @@
-import { createContext, useState, useContext } from 'react';
+import { createContext, useState, useContext, useEffect } from 'react';
+import authService from '../services/auth/authService';
 
 const AuthContext = createContext();
 
@@ -13,21 +14,37 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Verificar si hay una sesión activa al cargar la aplicación
+  useEffect(() => {
+    const currentUser = authService.getCurrentUser();
+    if (currentUser && authService.isAuthenticated()) {
+      setUser(currentUser);
+      setIsAuthenticated(true);
+    }
+    setLoading(false);
+  }, []);
 
   const login = async (credentials) => {
     try {
-      // TODO: Implement actual login logic with API
-      // For now, we'll simulate a successful login
-      setUser({ username: credentials.username });
-      setIsAuthenticated(true);
-      return true;
+      const result = await authService.login(credentials);
+      
+      if (result.success) {
+        setUser(result.user);
+        setIsAuthenticated(true);
+        return true;
+      } else {
+        throw new Error(result.error);
+      }
     } catch (error) {
       console.error('Login error:', error);
-      return false;
+      throw error;
     }
   };
 
   const logout = () => {
+    authService.logout();
     setUser(null);
     setIsAuthenticated(false);
   };
@@ -36,7 +53,8 @@ export const AuthProvider = ({ children }) => {
     user,
     isAuthenticated,
     login,
-    logout
+    logout,
+    loading
   };
 
   return (

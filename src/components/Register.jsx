@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
   Container,
   Paper,
@@ -23,7 +24,9 @@ const Register = () => {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({
@@ -47,6 +50,7 @@ const Register = () => {
   const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess(false);
     setLoading(true);
 
     if (!validateForm()) {
@@ -55,12 +59,26 @@ const Register = () => {
     }
 
     try {
-      // Aquí iría la lógica de registro
-      // Por ahora solo simulamos el registro exitoso
-      console.log('Registro exitoso:', formData);
-      navigate('/login');
+      // Preparar los datos para enviar al backend
+      const { confirmPassword, ...userData } = formData;
+      
+      // Importar el servicio de autenticación
+      const authServiceModule = await import('../services/auth/authService');
+      const authService = authServiceModule.default;
+      
+      const result = await authService.register(userData);
+
+      if (result.success) {
+        setSuccess(true);
+        // Auto-login después del registro exitoso
+        await login({ username: userData.username, password: userData.password });
+        navigate('/dashboard');
+      } else {
+        setError(result.error || 'Error al registrar usuario. Intente nuevamente.');
+      }
     } catch (err) {
-      setError('Error al registrar usuario. Intente nuevamente.');
+      console.error('Register error:', err);
+      setError(err.message || 'Error al registrar usuario. Intente nuevamente.');
     } finally {
       setLoading(false);
     }
@@ -93,6 +111,12 @@ const Register = () => {
           {error && (
             <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
               {error}
+            </Alert>
+          )}
+
+          {success && (
+            <Alert severity="success" sx={{ width: '100%', mb: 2 }}>
+              Cuenta creada exitosamente
             </Alert>
           )}
 
