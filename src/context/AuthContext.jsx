@@ -15,12 +15,16 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(localStorage.getItem('token'));
 
   // Verificar si hay una sesión activa al cargar la aplicación
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
-    if (currentUser && authService.isAuthenticated()) {
+    const storedToken = localStorage.getItem('token');
+    
+    if (currentUser && storedToken) {
       setUser(currentUser);
+      setToken(storedToken);
       setIsAuthenticated(true);
     }
     setLoading(false);
@@ -54,7 +58,8 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated,
     login,
     logout,
-    loading
+    loading,
+    token
   };
 
   return (
