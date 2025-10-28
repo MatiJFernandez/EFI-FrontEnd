@@ -110,7 +110,10 @@ const Login = () => {
               {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </Button>
 
-            <Box sx={{ textAlign: 'center' }}>
+            <Box sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <MuiLink component={Link} to="/forgot-password" variant="body2">
+                ¿Olvidaste tu contraseña?
+              </MuiLink>
               <MuiLink component={Link} to="/register" variant="body2">
                 ¿No tienes cuenta? Regístrate
               </MuiLink>
