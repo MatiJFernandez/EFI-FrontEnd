@@ -94,9 +94,38 @@ Si no defines esta variable, por defecto usará `http://localhost:3001/api`.
 - ✅ Instalación y configuración de Material UI
 - ✅ Configuración de React Router con rutas públicas/privadas
 - ✅ Configuración de Axios con interceptores de autenticación
+- ✅ **Sistema de redirecciones basado en roles de usuario**
 - 🔄 Hot Module Replacement (HMR)
 - 📱 Diseño responsivo
 - 🎨 Estilos CSS personalizados
+
+## 🔐 Sistema de Roles y Redirecciones
+
+El sistema implementa un mecanismo de control de acceso basado en roles de usuario:
+
+### Roles Soportados
+- **user**: Usuario estándar con acceso básico
+- **moderator**: Moderador con permisos adicionales
+- **admin**: Administrador con acceso completo
+
+### Componente PrivateRoute Mejorado
+```jsx
+<PrivateRoute requiredRole="admin">
+  <AdminDashboard />
+</PrivateRoute>
+```
+
+### Comportamiento de Redirecciones
+- **Usuario no autenticado**: Redirigido a `/login`
+- **Usuario sin rol requerido**: Redirigido según su rol actual:
+  - Admin → `/admin`
+  - Moderator → `/moderator`
+  - User → `/dashboard`
+
+### Rutas Protegidas
+- `/dashboard`: Acceso para cualquier usuario autenticado
+- `/admin`: Solo para usuarios con rol `admin`
+- `/moderator`: Solo para usuarios con rol `moderator`
 
 ## 📝 Próximas Funcionalidades (Sprint 1.2)
 
