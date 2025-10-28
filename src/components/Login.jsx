@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import {
   Container,
   Paper,
@@ -23,6 +24,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { showToast } = useToast();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,6 +49,7 @@ const Login = () => {
     const errors = validateForm(formData);
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
+      showToast('Por favor corrija los errores del formulario.', 'warning');
       return;
     }
 
@@ -54,10 +57,12 @@ const Login = () => {
 
     try {
       await login(formData);
+      showToast('Inicio de sesión exitoso. ¡Bienvenido!', 'success');
       navigate('/dashboard');
     } catch (err) {
       const errorMessage = err.message || 'Error al iniciar sesión. Verifique sus credenciales.';
       setError(errorMessage);
+      showToast(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
