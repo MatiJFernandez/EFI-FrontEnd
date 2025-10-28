@@ -1,46 +1,127 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import {
+  Container,
+  Paper,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  Alert,
+  Link as MuiLink
+} from '@mui/material';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [formData, setFormData] = useState({
+    username: '',
+    password: ''
+  });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
   const handleLogin = async (e) => {
     e.preventDefault();
-    const success = await login({ username, password });
-    if (success) {
-      navigate('/dashboard');
-    } else {
-      alert('Invalid credentials');
+    setError('');
+    setLoading(true);
+
+    try {
+      const success = await login(formData);
+      if (success) {
+        navigate('/dashboard');
+      } else {
+        setError('Credenciales inválidas');
+      }
+    } catch (err) {
+      setError('Error al iniciar sesión. Intente nuevamente.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div>
-      <h2>Login Page</h2>
-      <form onSubmit={handleLogin}>
-        <div>
-          <label>Username:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-        </div>
-        <div>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        <button type="submit">Login</button>
-      </form>
-    </div>
+    <Container component="main" maxWidth="sm">
+      <Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Paper
+          elevation={3}
+          sx={{
+            padding: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '100%',
+          }}
+        >
+          <Typography component="h1" variant="h4" gutterBottom>
+            Iniciar Sesión
+          </Typography>
+
+          {error && (
+            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+              {error}
+            </Alert>
+          )}
+
+          <Box component="form" onSubmit={handleLogin} sx={{ mt: 1, width: '100%' }}>
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="username"
+              label="Usuario"
+              name="username"
+              autoComplete="username"
+              autoFocus
+              value={formData.username}
+              onChange={handleChange}
+            />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="password"
+              label="Contraseña"
+              type="password"
+              id="password"
+              autoComplete="current-password"
+              value={formData.password}
+              onChange={handleChange}
+            />
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 3, mb: 2 }}
+              disabled={loading}
+            >
+              {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+            </Button>
+
+            <Box sx={{ textAlign: 'center' }}>
+              <MuiLink component={Link} to="/register" variant="body2">
+                ¿No tienes cuenta? Regístrate
+              </MuiLink>
+            </Box>
+          </Box>
+        </Paper>
+      </Box>
+    </Container>
   );
 };
 
