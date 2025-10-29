@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useDishes } from '../context/DishesContext';
+import { useAuth } from '../context/AuthContext';
 import {
   Box,
   Typography,
   Card,
   CardContent,
-  CardActions,
   Button,
   CircularProgress,
   Alert,
@@ -13,15 +13,13 @@ import {
   Chip,
   IconButton,
   Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
   TextField,
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  Switch,
+  FormControlLabel
 } from '@mui/material';
 import {
   Delete as DeleteIcon,
@@ -36,8 +34,12 @@ const DishesList = () => {
     loading,
     error,
     fetchDishes,
-    clearError
+    clearError,
+    toggleAvailability
   } = useDishes();
+  
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin' || user?.role === 'moderator';
 
   const [selectedCategory, setSelectedCategory] = useState('');
   const [showOnlyAvailable, setShowOnlyAvailable] = useState(false);
@@ -55,6 +57,10 @@ const DishesList = () => {
   const handleRefresh = () => {
     clearError();
     fetchDishes();
+  };
+
+  const handleToggleAvailability = async (id) => {
+    await toggleAvailability(id);
   };
 
   return (
@@ -169,23 +175,41 @@ const DishesList = () => {
                 </Typography>
               </CardContent>
 
-              <CardActions sx={{ justifyContent: 'flex-end', pt: 0 }}>
-                <Tooltip title="Ver detalles">
-                  <IconButton size="small" color="primary">
-                    <VisibilityIcon />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Editar">
-                  <IconButton size="small" color="primary">
-                    <EditIcon />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Eliminar">
-                  <IconButton size="small" color="error">
-                    <DeleteIcon />
-                  </IconButton>
-                </Tooltip>
-              </CardActions>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', p: 2, pt: 0 }}>
+                {isAdmin && (
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={dish.available}
+                        onChange={() => handleToggleAvailability(dish.id)}
+                        size="small"
+                      />
+                    }
+                    label="Disponible"
+                  />
+                )}
+                <Box sx={{ display: 'flex', gap: 0 }}>
+                  <Tooltip title="Ver detalles">
+                    <IconButton size="small" color="primary">
+                      <VisibilityIcon />
+                    </IconButton>
+                  </Tooltip>
+                  {isAdmin && (
+                    <>
+                      <Tooltip title="Editar">
+                        <IconButton size="small" color="primary">
+                          <EditIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Eliminar">
+                        <IconButton size="small" color="error">
+                          <DeleteIcon />
+                        </IconButton>
+                      </Tooltip>
+                    </>
+                  )}
+                </Box>
+              </Box>
             </Card>
           </Grid>
         ))}

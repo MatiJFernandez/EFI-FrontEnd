@@ -87,6 +87,26 @@ export const DishesProvider = ({ children }) => {
     }
   }, []);
 
+  // Toggle availability of a dish
+  const toggleAvailability = useCallback(async (id) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await api.patch(`/dishes/${id}/toggle-availability`);
+      setDishes(prev => prev.map(dish =>
+        dish.id === id ? response.data : dish
+      ));
+      return { success: true, dish: response.data };
+    } catch (err) {
+      console.error('Error toggling availability:', err);
+      const errorMessage = err.response?.data?.message || 'Error al cambiar disponibilidad';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Get dish by ID
   const getDishById = useCallback((id) => {
     return dishes.find(dish => dish.id === id);
@@ -120,6 +140,7 @@ export const DishesProvider = ({ children }) => {
     createDish,
     updateDish,
     deleteDish,
+    toggleAvailability,
     getDishById,
     getAvailableDishes,
     getDishesByCategory,
