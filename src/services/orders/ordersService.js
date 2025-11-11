@@ -4,8 +4,11 @@ const ordersService = {
   // Obtener todos los pedidos
   getAllOrders: async () => {
     try {
-      const response = await api.get('/orders');
-      return { success: true, data: response.data };
+  const response = await api.get('/orders');
+  // Unwrap actual data if backend returns { success, count, data }
+  const respData = response.data || {};
+  const data = Array.isArray(respData.data) ? respData.data : (Array.isArray(respData) ? respData : respData.data || respData);
+  return { success: true, data };
     } catch (error) {
       console.error('Error fetching orders:', error);
       return {
@@ -18,8 +21,10 @@ const ordersService = {
   // Obtener un pedido por ID
   getOrderById: async (id) => {
     try {
-      const response = await api.get(`/orders/${id}`);
-      return { success: true, data: response.data };
+  const response = await api.get(`/orders/${id}`);
+  const respData = response.data || {};
+  const data = respData.data ?? respData;
+  return { success: true, data };
     } catch (error) {
       console.error('Error fetching order:', error);
       return {
@@ -32,8 +37,10 @@ const ordersService = {
   // Crear un nuevo pedido
   createOrder: async (orderData) => {
     try {
-      const response = await api.post('/orders', orderData);
-      return { success: true, data: response.data };
+  const response = await api.post('/orders', orderData);
+  const respData = response.data || {};
+  const data = respData.data ?? respData;
+  return { success: true, data };
     } catch (error) {
       console.error('Error creating order:', error);
       return {
@@ -46,8 +53,10 @@ const ordersService = {
   // Actualizar un pedido
   updateOrder: async (id, orderData) => {
     try {
-      const response = await api.put(`/orders/${id}`, orderData);
-      return { success: true, data: response.data };
+  const response = await api.put(`/orders/${id}`, orderData);
+  const respData = response.data || {};
+  const data = respData.data ?? respData;
+  return { success: true, data };
     } catch (error) {
       console.error('Error updating order:', error);
       return {
@@ -60,8 +69,10 @@ const ordersService = {
   // Actualizar el estado de un pedido
   updateOrderStatus: async (id, status) => {
     try {
-      const response = await api.patch(`/orders/${id}/status`, { status });
-      return { success: true, data: response.data };
+  const response = await api.patch(`/orders/${id}/status`, { status });
+  const respData = response.data || {};
+  const data = respData.data ?? respData;
+  return { success: true, data };
     } catch (error) {
       console.error('Error updating order status:', error);
       return {
@@ -74,8 +85,8 @@ const ordersService = {
   // Eliminar un pedido
   deleteOrder: async (id) => {
     try {
-      await api.delete(`/orders/${id}`);
-      return { success: true };
+  await api.delete(`/orders/${id}`);
+  return { success: true };
     } catch (error) {
       console.error('Error deleting order:', error);
       return {
@@ -88,8 +99,10 @@ const ordersService = {
   // Obtener pedidos por estado
   getOrdersByStatus: async (status) => {
     try {
-      const response = await api.get(`/orders?status=${status}`);
-      return { success: true, data: response.data };
+  const response = await api.get(`/orders?status=${status}`);
+  const respData = response.data || {};
+  const data = Array.isArray(respData.data) ? respData.data : (Array.isArray(respData) ? respData : respData.data || respData);
+  return { success: true, data };
     } catch (error) {
       console.error('Error fetching orders by status:', error);
       return {

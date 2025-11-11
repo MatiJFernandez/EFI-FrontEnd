@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../services/api/api';
+import { useAuth } from './AuthContext';
 
 const TablesContext = createContext();
 
@@ -21,7 +22,9 @@ export const TablesProvider = ({ children }) => {
     setError(null);
     try {
       const response = await api.get('/tables');
-      setTables(response.data);
+      const resp = response.data || {};
+      const list = Array.isArray(resp.data) ? resp.data : (Array.isArray(resp) ? resp : []);
+      setTables(list);
     } catch (err) {
       console.error('Error fetching tables:', err);
       setError(err.response?.data?.message || 'Error al cargar las mesas');
@@ -34,9 +37,11 @@ export const TablesProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post('/tables', tableData);
-      setTables(prev => [...prev, response.data]);
-      return { success: true, table: response.data };
+  const response = await api.post('/tables', tableData);
+  const resp = response.data || {};
+  const created = resp.data ?? resp;
+  setTables(prev => [...prev, created]);
+  return { success: true, table: created };
     } catch (err) {
       console.error('Error creating table:', err);
       const errorMessage = err.response?.data?.message || 'Error al crear la mesa';
@@ -51,9 +56,11 @@ export const TablesProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.put(`/tables/${id}`, tableData);
-      setTables(prev => prev.map(t => (t.id === id ? response.data : t)));
-      return { success: true, table: response.data };
+  const response = await api.put(`/tables/${id}`, tableData);
+  const resp = response.data || {};
+  const updated = resp.data ?? resp;
+  setTables(prev => prev.map(t => (t.id === id ? updated : t)));
+  return { success: true, table: updated };
     } catch (err) {
       console.error('Error updating table:', err);
       const errorMessage = err.response?.data?.message || 'Error al actualizar la mesa';
@@ -86,9 +93,11 @@ export const TablesProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.patch(`/tables/${id}`, status);
-      setTables(prev => prev.map(t => (t.id === id ? response.data : t)));
-      return { success: true, table: response.data };
+  const response = await api.patch(`/tables/${id}`, status);
+  const resp = response.data || {};
+  const updated = resp.data ?? resp;
+  setTables(prev => prev.map(t => (t.id === id ? updated : t)));
+  return { success: true, table: updated };
     } catch (err) {
       console.error('Error updating table status:', err);
       const errorMessage = err.response?.data?.message || 'Error al cambiar el estado de la mesa';
@@ -110,9 +119,14 @@ export const TablesProvider = ({ children }) => {
 
   const clearError = useCallback(() => setError(null), []);
 
+  // Load tables on mount (only if authenticated)
+  const { isAuthenticated } = useAuth();
+  
   useEffect(() => {
-    fetchTables();
-  }, [fetchTables]);
+    if (isAuthenticated) {
+      fetchTables();
+    }
+  }, [isAuthenticated, fetchTables]);
 
   const value = {
     tables,

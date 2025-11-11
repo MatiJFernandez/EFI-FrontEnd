@@ -16,7 +16,7 @@ import { validateField, validateForm } from '../utils/validations';
 
 const Login = () => {
   const [formData, setFormData] = useState({
-    username: '',
+    email: '',
     password: ''
   });
   const [formErrors, setFormErrors] = useState({});
@@ -44,6 +44,7 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    console.log('[Login] submit', formData);
     
     // Validar todo el formulario antes de enviar
     const errors = validateForm(formData);
@@ -57,7 +58,10 @@ const Login = () => {
 
     try {
       await login(formData);
+      console.log('[Login] token after login:', localStorage.getItem('token'));
       showToast('Inicio de sesión exitoso. ¡Bienvenido!', 'success');
+      // short delay so DevTools Network/Console can capture the POST before navigation
+      await new Promise((resolve) => setTimeout(resolve, 1500));
       navigate('/dashboard');
     } catch (err) {
       const errorMessage = err.message || 'Error al iniciar sesión. Verifique sus credenciales.';
@@ -103,15 +107,16 @@ const Login = () => {
               margin="normal"
               required
               fullWidth
-              id="username"
-              label="Usuario"
-              name="username"
-              autoComplete="username"
+              id="email"
+              label="Correo Electrónico"
+              name="email"
+              type="email"
+              autoComplete="email"
               autoFocus
-              value={formData.username}
+              value={formData.email}
               onChange={handleChange}
-              error={!!formErrors.username}
-              helperText={formErrors.username}
+              error={!!formErrors.email}
+              helperText={formErrors.email}
             />
             <TextField
               margin="normal"

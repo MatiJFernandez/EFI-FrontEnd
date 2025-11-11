@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import ordersService from '../services/orders/ordersService';
+import { useAuth } from './AuthContext';
 
 const OrdersContext = createContext();
 
@@ -146,19 +147,45 @@ export const OrdersProvider = ({ children }) => {
     setError(null);
   }, []);
 
-  // Load orders on mount
+  // Load orders on mount (only if authenticated)
+  const { isAuthenticated } = useAuth();
+  
   useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
-
-  // Set up polling to refresh orders every 5 seconds
-  useEffect(() => {
-    const interval = setInterval(() => {
+    if (isAuthenticated) {
       fetchOrders();
-    }, 5000); // Refresh every 5 seconds
+    }
+  }, [isAuthenticated, fetchOrders]);
 
-    return () => clearInterval(interval);
-  }, [fetchOrders]);
+  // Set up polling to refresh orders every 5 seconds (only if authenticated)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let isCancelled = false;
+    const pollingRef = { running: false };
+
+    const poll = async () => {
+      if (isCancelled) return;
+      if (pollingRef.running) return;
+      pollingRef.running = true;
+      try {
+        await fetchOrders();
+      } catch (e) {
+        // ignore
+      } finally {
+        pollingRef.running = false;
+      }
+      if (isCancelled) return;
+      // schedule next poll after 5s
+      timeoutId = setTimeout(poll, 5000);
+    };
+
+    let timeoutId = setTimeout(poll, 0); // start immediately
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(timeoutId);
+    };
+  }, [isAuthenticated, fetchOrders]);
 
   const value = {
     orders,

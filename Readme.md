@@ -37,7 +37,7 @@ npm install
 ```bash
 npm run dev
 ```
-Inicia el servidor de desarrollo en `http://localhost:3000`
+Inicia el servidor de desarrollo en `http://localhost:5173`
 
 ### Construcción
 ```bash

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import api from '../services/api/api';
+import { useAuth } from './AuthContext';
 
 const DishesContext = createContext();
 
@@ -22,7 +23,9 @@ export const DishesProvider = ({ children }) => {
     setError(null);
     try {
       const response = await api.get('/dishes');
-      setDishes(response.data);
+      const resp = response.data || {};
+      const list = Array.isArray(resp.data) ? resp.data : (Array.isArray(resp) ? resp : []);
+      setDishes(list);
     } catch (err) {
       console.error('Error fetching dishes:', err);
       setError(err.response?.data?.message || 'Error al cargar los platos');
@@ -36,9 +39,11 @@ export const DishesProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.post('/dishes', dishData);
-      setDishes(prev => [...prev, response.data]);
-      return { success: true, dish: response.data };
+  const response = await api.post('/dishes', dishData);
+  const resp = response.data || {};
+  const created = resp.data ?? resp;
+  setDishes(prev => [...prev, created]);
+  return { success: true, dish: created };
     } catch (err) {
       console.error('Error creating dish:', err);
       const errorMessage = err.response?.data?.message || 'Error al crear el plato';
@@ -55,10 +60,12 @@ export const DishesProvider = ({ children }) => {
     setError(null);
     try {
       const response = await api.put(`/dishes/${id}`, dishData);
+      const resp = response.data || {};
+      const updated = resp.data ?? resp;
       setDishes(prev => prev.map(dish =>
-        dish.id === id ? response.data : dish
+        dish.id === id ? updated : dish
       ));
-      return { success: true, dish: response.data };
+      return { success: true, dish: updated };
     } catch (err) {
       console.error('Error updating dish:', err);
       const errorMessage = err.response?.data?.message || 'Error al actualizar el plato';
@@ -93,10 +100,12 @@ export const DishesProvider = ({ children }) => {
     setError(null);
     try {
       const response = await api.patch(`/dishes/${id}/toggle-availability`);
+      const resp = response.data || {};
+      const toggled = resp.data ?? resp;
       setDishes(prev => prev.map(dish =>
-        dish.id === id ? response.data : dish
+        dish.id === id ? toggled : dish
       ));
-      return { success: true, dish: response.data };
+      return { success: true, dish: toggled };
     } catch (err) {
       console.error('Error toggling availability:', err);
       const errorMessage = err.response?.data?.message || 'Error al cambiar disponibilidad';
@@ -127,10 +136,14 @@ export const DishesProvider = ({ children }) => {
     setError(null);
   }, []);
 
-  // Load dishes on mount
+  // Load dishes on mount (only if authenticated)
+  const { isAuthenticated } = useAuth();
+  
   useEffect(() => {
-    fetchDishes();
-  }, [fetchDishes]);
+    if (isAuthenticated) {
+      fetchDishes();
+    }
+  }, [isAuthenticated, fetchDishes]);
 
   const value = {
     dishes,

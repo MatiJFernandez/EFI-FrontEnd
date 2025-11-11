@@ -15,12 +15,24 @@ export const authService = {
    */
   async login(credentials) {
     try {
+      console.log('[authService] login credentials:', credentials);
       const response = await api.post('/auth/login', credentials);
-      const { token, user } = response.data;
+      console.log('[authService] login response data:', response.data);
 
-      // Guardar token y usuario en localStorage
-      setAuthToken(token);
-      localStorage.setItem('user', JSON.stringify(user));
+      // Detectar posibles nombres del token en la respuesta
+      const data = response.data || {};
+      const token = data.token || data.accessToken || data.jwt || data.authorization || (data.data && data.data.token) || null;
+      const user = data.user || data.data || null;
+
+      // Guardar token y usuario en localStorage si existe token
+      if (token) {
+        setAuthToken(token);
+      } else {
+        console.warn('[authService] no token found in login response');
+      }
+      if (user) {
+        localStorage.setItem('user', JSON.stringify(user));
+      }
 
       return { success: true, user, token };
     } catch (error) {
@@ -43,11 +55,13 @@ export const authService = {
   async register(userData) {
     try {
       const response = await api.post('/auth/register', userData);
-      const { token, user } = response.data;
+      console.log('[authService] register response data:', response.data);
+      const data = response.data || {};
+      const token = data.token || data.accessToken || data.jwt || data.authorization || (data.data && data.data.token) || null;
+      const user = data.user || data.data || null;
 
-      // Guardar token y usuario en localStorage
-      setAuthToken(token);
-      localStorage.setItem('user', JSON.stringify(user));
+      if (token) setAuthToken(token);
+      if (user) localStorage.setItem('user', JSON.stringify(user));
 
       return { success: true, user, token };
     } catch (error) {
