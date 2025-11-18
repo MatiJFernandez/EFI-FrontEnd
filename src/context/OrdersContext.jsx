@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import ordersService from '../services/orders/ordersService';
+import { useAuth } from './AuthContext';
 
 const OrdersContext = createContext();
 
@@ -12,6 +13,7 @@ export const useOrders = () => {
 };
 
 export const OrdersProvider = ({ children }) => {
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -141,6 +143,28 @@ export const OrdersProvider = ({ children }) => {
     return orders.filter(order => order.status === status);
   }, [orders]);
 
+  // Get orders filtered by user role
+  const getOrdersByRole = useCallback(() => {
+    if (!user || !user.role) return orders;
+
+    switch (user.role) {
+      case 'admin':
+        // Admin can see all orders
+        return orders;
+      case 'moderator':
+        // Moderator (cook) can see orders that are preparing, ready, or delivered
+        return orders.filter(order =>
+          ['preparing', 'ready', 'delivered'].includes(order.status)
+        );
+      case 'user':
+        // User (waiter) can see orders for their assigned tables or all orders if no table assignment
+        // For now, return all orders - this could be enhanced with table assignment logic
+        return orders;
+      default:
+        return orders;
+    }
+  }, [orders, user]);
+
   // Clear error
   const clearError = useCallback(() => {
     setError(null);
@@ -171,6 +195,7 @@ export const OrdersProvider = ({ children }) => {
     deleteOrder,
     getOrderById,
     getOrdersByStatus,
+    getOrdersByRole,
     clearError
   };
 
@@ -180,4 +205,3 @@ export const OrdersProvider = ({ children }) => {
     </OrdersContext.Provider>
   );
 };
-
