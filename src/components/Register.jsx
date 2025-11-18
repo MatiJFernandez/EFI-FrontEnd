@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import authService from '../services/auth/authService';
 import {
   Container,
   Paper,
@@ -65,11 +66,7 @@ const Register = () => {
     try {
       // Preparar los datos para enviar al backend
       const { confirmPassword, ...userData } = formData;
-      
-      // Importar el servicio de autenticación
-      const authServiceModule = await import('../services/auth/authService');
-      const authService = authServiceModule.default;
-      
+
       const result = await authService.register(userData);
 
       if (result.success) {

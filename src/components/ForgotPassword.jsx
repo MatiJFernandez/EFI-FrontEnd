@@ -90,7 +90,7 @@ const ForgotPassword = () => {
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }}>
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, width: '100%' }} data-testid="forgot-password-form">
             <TextField
               margin="normal"
               required
@@ -134,4 +134,3 @@ const ForgotPassword = () => {
 };
 
 export default ForgotPassword;
-
