@@ -98,7 +98,7 @@ const Login = () => {
             </Alert>
           )}
 
-          <Box component="form" onSubmit={handleLogin} sx={{ mt: 1, width: '100%' }}>
+          <Box component="form" onSubmit={handleLogin} sx={{ mt: 1, width: '100%' }} data-testid="login-form">
             <TextField
               margin="normal"
               required

@@ -137,7 +137,7 @@ const DishesList = () => {
       {/* Grid de platos */}
       <Grid container spacing={2}>
         {filteredDishes.map((dish) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={dish.id}>
+          <Grid xs={12} sm={6} md={4} lg={3} key={dish.id}>
             <Card 
               sx={{ 
                 height: '100%', 
@@ -198,12 +198,12 @@ const DishesList = () => {
                     <>
                       <Tooltip title="Editar">
                         <IconButton size="small" color="primary">
-                          <EditIcon />
+                          <EditIcon data-testid="EditIcon" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Eliminar">
                         <IconButton size="small" color="error">
-                          <DeleteIcon />
+                          <DeleteIcon data-testid="DeleteIcon" />
                         </IconButton>
                       </Tooltip>
                     </>
@@ -219,4 +219,3 @@ const DishesList = () => {
 };
 
 export default DishesList;
-

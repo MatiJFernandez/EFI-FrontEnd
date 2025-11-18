@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import ordersService from '../services/orders/ordersService';
+import orderDetailsService from '../services/orderDetails/orderDetailsService';
+import { useAuth } from './AuthContext';
 
 const OrdersContext = createContext();
 
@@ -12,6 +14,7 @@ export const useOrders = () => {
 };
 
 export const OrdersProvider = ({ children }) => {
+  const { user } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -136,10 +139,54 @@ export const OrdersProvider = ({ children }) => {
     return orders.find(order => order.id === id);
   }, [orders]);
 
+  // Get order details using orderDetails service
+  const getOrderDetails = useCallback(async (orderId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await orderDetailsService.getOrderDetails(orderId);
+      if (result.success) {
+        return { success: true, data: result.data };
+      } else {
+        setError(result.error);
+        return { success: false, error: result.error };
+      }
+    } catch (err) {
+      console.error('Error fetching order details:', err);
+      const errorMessage = 'Error al obtener los detalles del pedido';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Get orders by status
   const getOrdersByStatus = useCallback((status) => {
     return orders.filter(order => order.status === status);
   }, [orders]);
+
+  // Get orders filtered by user role
+  const getOrdersByRole = useCallback(() => {
+    if (!user || !user.role) return orders;
+
+    switch (user.role) {
+      case 'admin':
+        // Admin can see all orders
+        return orders;
+      case 'moderator':
+        // Moderator (cook) can see orders that are preparing, ready, or delivered
+        return orders.filter(order =>
+          ['preparing', 'ready', 'delivered'].includes(order.status)
+        );
+      case 'user':
+        // User (waiter) can see orders for their assigned tables or all orders if no table assignment
+        // For now, return all orders - this could be enhanced with table assignment logic
+        return orders;
+      default:
+        return orders;
+    }
+  }, [orders, user]);
 
   // Clear error
   const clearError = useCallback(() => {
@@ -170,7 +217,9 @@ export const OrdersProvider = ({ children }) => {
     updateOrderStatus,
     deleteOrder,
     getOrderById,
+    getOrderDetails,
     getOrdersByStatus,
+    getOrdersByRole,
     clearError
   };
 
@@ -180,4 +229,3 @@ export const OrdersProvider = ({ children }) => {
     </OrdersContext.Provider>
   );
 };
-

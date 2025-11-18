@@ -1,5 +1,6 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import authService from '../services/auth/authService';
+import usersService from '../services/users/usersService';
 
 const AuthContext = createContext();
 
@@ -53,11 +54,49 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
   };
 
+  const forgotPassword = async (email) => {
+    try {
+      const result = await authService.forgotPassword(email);
+      return result;
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      throw error;
+    }
+  };
+
+  const resetPassword = async (resetData) => {
+    try {
+      const result = await authService.resetPassword(resetData);
+      return result;
+    } catch (error) {
+      console.error('Reset password error:', error);
+      throw error;
+    }
+  };
+
+  const getUserProfile = async () => {
+    try {
+      const result = await usersService.getUserProfile();
+      if (result.success) {
+        setUser(result.data);
+        return result;
+      } else {
+        return result;
+      }
+    } catch (error) {
+      console.error('Get user profile error:', error);
+      return { success: false, error: 'Error al obtener el perfil del usuario' };
+    }
+  };
+
   const value = {
     user,
     isAuthenticated,
     login,
     logout,
+    forgotPassword,
+    resetPassword,
+    getUserProfile,
     loading,
     token
   };
