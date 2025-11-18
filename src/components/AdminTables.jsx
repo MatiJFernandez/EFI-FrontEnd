@@ -56,8 +56,7 @@ const AdminTables = () => {
     <Box>
       <Typography variant="h4" gutterBottom>Administración de Mesas</Typography>
 
-      {error && <Alert severity="error">{error}</Alert>}
-      {localError && <Alert severity="error">{localError}</Alert>}
+      {(error || localError) && <Alert severity="error">{localError || error}</Alert>}
 
       <Box sx={{ mb: 2 }}>
         <Button variant="contained" startIcon={<AddIcon />} onClick={() => { setEditing(null); setShowForm(true); }}>

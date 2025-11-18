@@ -137,7 +137,7 @@ const DishesList = () => {
       {/* Grid de platos */}
       <Grid container spacing={2}>
         {filteredDishes.map((dish) => (
-          <Grid item xs={12} sm={6} md={4} lg={3} key={dish.id}>
+          <Grid xs={12} sm={6} md={4} lg={3} key={dish.id}>
             <Card 
               sx={{ 
                 height: '100%', 
