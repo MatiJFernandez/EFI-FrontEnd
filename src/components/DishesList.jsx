@@ -198,12 +198,12 @@ const DishesList = () => {
                     <>
                       <Tooltip title="Editar">
                         <IconButton size="small" color="primary">
-                          <EditIcon />
+                          <EditIcon data-testid="EditIcon" />
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Eliminar">
                         <IconButton size="small" color="error">
-                          <DeleteIcon />
+                          <DeleteIcon data-testid="DeleteIcon" />
                         </IconButton>
                       </Tooltip>
                     </>
@@ -219,4 +219,3 @@ const DishesList = () => {
 };
 
 export default DishesList;
-
