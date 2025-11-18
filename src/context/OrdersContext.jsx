@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import ordersService from '../services/orders/ordersService';
+import orderDetailsService from '../services/orderDetails/orderDetailsService';
 import { useAuth } from './AuthContext';
 
 const OrdersContext = createContext();
@@ -138,6 +139,28 @@ export const OrdersProvider = ({ children }) => {
     return orders.find(order => order.id === id);
   }, [orders]);
 
+  // Get order details using orderDetails service
+  const getOrderDetails = useCallback(async (orderId) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await orderDetailsService.getOrderDetails(orderId);
+      if (result.success) {
+        return { success: true, data: result.data };
+      } else {
+        setError(result.error);
+        return { success: false, error: result.error };
+      }
+    } catch (err) {
+      console.error('Error fetching order details:', err);
+      const errorMessage = 'Error al obtener los detalles del pedido';
+      setError(errorMessage);
+      return { success: false, error: errorMessage };
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   // Get orders by status
   const getOrdersByStatus = useCallback((status) => {
     return orders.filter(order => order.status === status);
@@ -194,6 +217,7 @@ export const OrdersProvider = ({ children }) => {
     updateOrderStatus,
     deleteOrder,
     getOrderById,
+    getOrderDetails,
     getOrdersByStatus,
     getOrdersByRole,
     clearError

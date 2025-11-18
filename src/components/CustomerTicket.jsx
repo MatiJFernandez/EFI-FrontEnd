@@ -19,34 +19,51 @@ const CustomerTicket = ({ order, onDownload }) => {
     try {
       const element = ticketRef.current;
       const canvas = await html2canvas(element, {
-        scale: 2,
+        scale: 3, // Higher scale for better quality
         useCORS: true,
         allowTaint: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
       });
 
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/png', 1.0); // Maximum quality
       const pdf = new jsPDF('p', 'mm', 'a4');
 
-      // Calculate dimensions to fit the content
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 295; // A4 height in mm
+      // Set margins for better formatting
+      const margin = 10; // 10mm margin
+      const pdfWidth = 210 - (margin * 2); // A4 width minus margins
+      const pdfHeight = 297 - (margin * 2); // A4 height minus margins
+
+      // Calculate dimensions to fit the content within margins
+      const imgWidth = pdfWidth;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
       let heightLeft = imgHeight;
 
-      let position = 0;
+      let position = margin;
 
-      // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      // Add first page with margins
+      pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
 
       // Add additional pages if needed
       while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
+        position = heightLeft - imgHeight + margin;
         pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        pdf.addImage(imgData, 'PNG', margin, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
       }
+
+      // Add metadata to PDF
+      pdf.setProperties({
+        title: `Ticket Cliente #${order.id}`,
+        subject: 'Ticket de restaurante',
+        author: 'Sistema de Gestión de Pedidos',
+        keywords: 'ticket, restaurante, pedido',
+        creator: 'Sistema de Gestión de Pedidos'
+      });
 
       // Download the PDF
       const fileName = `ticket-cliente-${order.id}-${new Date().toISOString().split('T')[0]}.pdf`;
