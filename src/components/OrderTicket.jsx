@@ -196,7 +196,7 @@ const OrderTicket = ({ order, onDownload }) => {
                   )}
                 </Box>
                 <Typography variant="body2" sx={{ ml: 1 }}>
-                  ${item.price * item.quantity}
+                  ${(item.price * item.quantity).toFixed(2)}
                 </Typography>
               </Box>
             </Box>
@@ -208,7 +208,7 @@ const OrderTicket = ({ order, onDownload }) => {
         {/* Total */}
         <Box sx={{ textAlign: 'right', mb: 2 }}>
           <Typography variant="h6">
-            <strong>Total: ${order.total || 0}</strong>
+            <strong>Total: ${(order.total || 0).toFixed(2)}</strong>
           </Typography>
         </Box>
 

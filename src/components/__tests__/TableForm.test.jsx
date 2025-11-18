@@ -1,10 +1,5 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import TableForm from '../TableForm';
-
 // Mock Material-UI components
 jest.mock('@mui/material', () => ({
-  ...jest.requireActual('@mui/material'),
   Box: ({ children, component, onSubmit, ...props }) => {
     if (component === 'form') {
       return <form onSubmit={onSubmit} {...props}>{children}</form>;
@@ -15,7 +10,7 @@ jest.mock('@mui/material', () => ({
     <button onClick={onClick} type={type} disabled={disabled} {...props}>{children}</button>
   ),
   TextField: ({ label, name, value, onChange, required, error, helperText, type, ...props }) => {
-    const id = `input-${name}`;
+    const id = `field-${name}`;
     return (
       <div>
         <label htmlFor={id}>{label}</label>
@@ -40,16 +35,22 @@ jest.mock('@mui/material', () => ({
       {label}
     </label>
   ),
-  Switch: ({ checked, onChange, name }) => (
+  Switch: ({ checked, onChange, name, ...props }) => (
     <input
       type="checkbox"
       checked={checked}
       onChange={onChange}
       name={name}
       data-testid="available-switch"
+      aria-label="Disponible"
+      {...props}
     />
   ),
 }));
+
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import TableForm from '../TableForm';
 
 // Mock the validateField function
 jest.mock('../../utils/validations', () => ({

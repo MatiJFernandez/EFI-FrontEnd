@@ -57,17 +57,17 @@ const DishesTest = () => {
       )}
 
       <Typography variant="h6" gutterBottom>
-        Platos Disponibles: {dishes.length}
+        Platos Disponibles: {Array.isArray(dishes) ? dishes.length : 0}
       </Typography>
 
-      {dishes.length === 0 && !loading && !error && (
+      {(!Array.isArray(dishes) || dishes.length === 0) && !loading && !error && (
         <Alert severity="info">
           No hay platos disponibles. El backend de dishes aún no está implementado.
         </Alert>
       )}
 
       <Grid container spacing={2}>
-        {dishes.map((dish) => (
+        {Array.isArray(dishes) && dishes.map((dish) => (
           <Grid item xs={12} sm={6} md={4} key={dish.id}>
             <Card>
               <CardContent>

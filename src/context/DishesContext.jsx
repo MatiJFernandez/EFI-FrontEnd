@@ -23,7 +23,7 @@ export const DishesProvider = ({ children }) => {
     try {
       const result = await dishesService.getAllDishes(params);
       if (result.success) {
-        setDishes(result.data);
+        setDishes(result.data.data || []); // Extract the data array from the response
       } else {
         setError(result.error);
       }
@@ -108,7 +108,7 @@ export const DishesProvider = ({ children }) => {
 
   // Toggle availability of a dish
   const toggleAvailability = useCallback(async (id) => {
-    const dish = dishes.find(d => d.id === id);
+    const dish = Array.isArray(dishes) ? dishes.find(d => d.id === id) : null;
     if (!dish) {
       const errorMessage = 'Plato no encontrado';
       setError(errorMessage);
@@ -122,17 +122,17 @@ export const DishesProvider = ({ children }) => {
 
   // Get dish by ID
   const getDishById = useCallback((id) => {
-    return dishes.find(dish => dish.id === id);
+    return Array.isArray(dishes) ? dishes.find(dish => dish.id === id) : null;
   }, [dishes]);
 
   // Get available dishes (not discontinued)
   const getAvailableDishes = useCallback(() => {
-    return dishes.filter(dish => dish.available !== false);
+    return Array.isArray(dishes) ? dishes.filter(dish => dish.available !== false) : [];
   }, [dishes]);
 
   // Get dishes by category (if implemented in backend)
   const getDishesByCategory = useCallback((category) => {
-    return dishes.filter(dish => dish.category === category);
+    return Array.isArray(dishes) ? dishes.filter(dish => dish.category === category) : [];
   }, [dishes]);
 
   // Clear error
