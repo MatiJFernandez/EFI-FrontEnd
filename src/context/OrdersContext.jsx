@@ -14,19 +14,25 @@ export const useOrders = () => {
 };
 
 export const OrdersProvider = ({ children }) => {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useAuth();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   // Fetch all orders
   const fetchOrders = useCallback(async () => {
+    // Only fetch if user is authenticated
+    if (!isAuthenticated) {
+      setOrders([]);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
       const result = await ordersService.getAllOrders();
       if (result.success) {
-        setOrders(result.data);
+        setOrders(result.data.data || []); // Extract the data array from the response
       } else {
         setError(result.error);
       }
@@ -36,7 +42,7 @@ export const OrdersProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   // Create a new order
   const createOrder = useCallback(async (orderData) => {
@@ -136,7 +142,7 @@ export const OrdersProvider = ({ children }) => {
 
   // Get order by ID
   const getOrderById = useCallback((id) => {
-    return orders.find(order => order.id === id);
+    return Array.isArray(orders) ? orders.find(order => order.id === id) : null;
   }, [orders]);
 
   // Get order details using orderDetails service
@@ -163,26 +169,26 @@ export const OrdersProvider = ({ children }) => {
 
   // Get orders by status
   const getOrdersByStatus = useCallback((status) => {
-    return orders.filter(order => order.status === status);
+    return Array.isArray(orders) ? orders.filter(order => order.status === status) : [];
   }, [orders]);
 
   // Get orders filtered by user role
   const getOrdersByRole = useCallback(() => {
-    if (!user || !user.role) return orders;
+    if (!user || !user.role) return Array.isArray(orders) ? orders : [];
 
     switch (user.role) {
       case 'admin':
         // Admin can see all orders
-        return orders;
+        return Array.isArray(orders) ? orders : [];
       case 'moderator':
         // Moderator (cook) can see orders that are preparing, ready, or delivered
-        return orders.filter(order =>
+        return Array.isArray(orders) ? orders.filter(order =>
           ['preparing', 'ready', 'delivered'].includes(order.status)
-        );
+        ) : [];
       case 'user':
         // User (waiter) can see orders for their assigned tables or all orders if no table assignment
         // For now, return all orders - this could be enhanced with table assignment logic
-        return orders;
+        return Array.isArray(orders) ? orders : [];
       default:
         return orders;
     }
@@ -193,19 +199,21 @@ export const OrdersProvider = ({ children }) => {
     setError(null);
   }, []);
 
-  // Load orders on mount
+  // Load orders on mount and when authentication status changes
   useEffect(() => {
     fetchOrders();
-  }, [fetchOrders]);
+  }, [fetchOrders, isAuthenticated]);
 
-  // Set up polling to refresh orders every 5 seconds
+  // Set up polling to refresh orders every 5 seconds (only when authenticated)
   useEffect(() => {
+    if (!isAuthenticated) return;
+
     const interval = setInterval(() => {
       fetchOrders();
     }, 5000); // Refresh every 5 seconds
 
     return () => clearInterval(interval);
-  }, [fetchOrders]);
+  }, [fetchOrders, isAuthenticated]);
 
   const value = {
     orders,

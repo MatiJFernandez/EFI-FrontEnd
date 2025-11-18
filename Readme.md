@@ -55,58 +55,123 @@ Vista previa de la construcción de producción
 
 ```
 src/
-├── components/     # Componentes reutilizables
-│   ├── common/    # Componentes comunes (Button, Loading, Modal)
-│   └── layout/    # Componentes de layout (Header, Footer, Navbar, Sidebar)
-├── pages/         # Páginas de la aplicación
-│   ├── auth/      # Páginas de autenticación (Login, Register)
-│   ├── dishes/    # Páginas de gestión de platos
-│   ├── orders/    # Páginas de gestión de pedidos
-│   └── tables/    # Páginas de gestión de mesas
-├── contexts/      # Contextos de React (AuthContext, DishesContext)
-├── services/      # Servicios y lógica de negocio
-│   ├── api/       # Configuración de Axios
-│   ├── auth/      # Servicios de autenticación
-│   ├── menu/      # Servicios de menú
-│   └── orders/    # Servicios de pedidos
-├── App.jsx        # Componente principal
-├── main.jsx       # Punto de entrada
-├── theme.js       # Tema de Material UI
-├── App.css        # Estilos de la aplicación
-└── index.css      # Estilos globales
+├── components/           # Componentes reutilizables
+│   ├── AdminDashboard.jsx
+│   ├── AdminTables.jsx
+│   ├── CustomerTicket.jsx
+│   ├── Dashboard.jsx
+│   ├── DishesList.jsx
+│   ├── DishesTest.jsx
+│   ├── DishForm.jsx
+│   ├── ForgotPassword.jsx
+│   ├── Home.jsx
+│   ├── Login.jsx
+│   ├── ModeratorDashboard.jsx
+│   ├── Navbar.jsx
+│   ├── OrdersList.jsx
+│   ├── OrderTicket.jsx
+│   ├── PrivateRoute.jsx
+│   ├── Register.jsx
+│   ├── ResetPassword.jsx
+│   ├── TableForm.jsx
+│   ├── UserInfo.jsx
+│   ├── WaiterTables.jsx
+│   └── __tests__/       # Tests de componentes
+├── context/             # Contextos de React para estado global
+│   ├── AuthContext.jsx
+│   ├── DishesContext.jsx
+│   ├── OrdersContext.jsx
+│   ├── TablesContext.jsx
+│   └── ToastContext.jsx
+├── pages/               # Páginas específicas de la aplicación
+│   └── orders/
+│       ├── ChefOrdersQueue.jsx
+│       └── WaiterOrderForm.jsx
+├── services/            # Servicios para comunicación con API
+│   ├── api/
+│   │   ├── api.js       # Configuración de Axios con interceptores
+│   │   └── README.md
+│   ├── auth/
+│   │   ├── authService.js
+│   │   └── __tests__/
+│   ├── dishes/
+│   │   └── dishesService.js
+│   ├── orderDetails/
+│   │   ├── orderDetailsService.js
+│   │   └── __tests__/
+│   ├── orders/
+│   │   ├── ordersService.js
+│   │   └── __tests__/
+│   ├── tables/
+│   │   └── tablesService.js
+│   └── users/
+│       └── usersService.js
+├── utils/               # Utilidades
+│   └── validations.js
+├── App.jsx              # Componente principal con rutas
+├── main.jsx             # Punto de entrada
+├── theme.js             # Tema de Material UI
+├── App.css              # Estilos de la aplicación
+├── index.css            # Estilos globales
+├── setupTests.js        # Configuración de tests
+└── theme.js             # Tema de Material UI
 ```
 
 ## ⚙️ Configuración de la API
 
-El proyecto utiliza Axios configurado en `src/services/api/api.js`. 
+El proyecto utiliza Axios configurado en `src/services/api/api.js`.
 
 Para configurar la URL del backend, crea un archivo `.env` en la raíz del proyecto:
 
 ```bash
-VITE_API_BASE_URL=http://localhost:3001/api
+VITE_API_BASE_URL=http://localhost:3000/api
 ```
 
-Si no defines esta variable, por defecto usará `http://localhost:3001/api`.
+Si no defines esta variable, por defecto usará `http://localhost:3000/api`.
 
 ## 🎯 Funcionalidades Implementadas
 
-- ✅ Configuración inicial de Vite + React
-- ✅ Instalación y configuración de Material UI
-- ✅ Configuración de React Router con rutas públicas/privadas
-- ✅ Configuración de Axios con interceptores de autenticación
-- ✅ **Sistema de redirecciones basado en roles de usuario**
-- 🔄 Hot Module Replacement (HMR)
-- 📱 Diseño responsivo
-- 🎨 Estilos CSS personalizados
+### Autenticación y Autorización
+- ✅ Sistema completo de autenticación (login, registro, recuperación de contraseña)
+- ✅ Control de acceso basado en roles (admin, moderator, waiter)
+- ✅ Contextos de React para gestión de estado global (AuthContext, etc.)
+- ✅ Componente PrivateRoute con redirecciones automáticas
+- ✅ Interceptores de Axios para manejo automático de tokens JWT
+
+### Interfaz de Usuario
+- ✅ Diseño responsivo con Material UI
+- ✅ Componentes reutilizables y modulares
+- ✅ Sistema de navegación con React Router
+- ✅ Tema personalizado de Material UI
+- ✅ Notificaciones con ToastContext
+
+### Gestión del Restaurante
+- ✅ **Panel de Administración**: Gestión completa de mesas, platos y usuarios
+- ✅ **Panel de Moderador**: Funcionalidades intermedias
+- ✅ **Panel de Mesero**: Creación y gestión de pedidos
+- ✅ **Panel de Cocina**: Visualización de cola de pedidos
+- ✅ Formularios para crear/editar platos y mesas
+- ✅ Sistema de tickets de pedidos (PDF)
+
+### API Integration
+- ✅ Servicios modulares para todas las entidades (dishes, orders, tables, users)
+- ✅ Manejo de errores centralizado
+- ✅ Configuración automática de headers de autenticación
+
+### Desarrollo y Testing
+- ✅ Configuración completa de Vite para desarrollo
+- ✅ Suite de tests unitarios e integración
+- ✅ Hot Module Replacement (HMR)
+- ✅ ESLint y configuración de testing
 
 ## 🔐 Sistema de Roles y Redirecciones
 
 El sistema implementa un mecanismo de control de acceso basado en roles de usuario:
 
 ### Roles Soportados
-- **user**: Usuario estándar con acceso básico
-- **moderator**: Moderador con permisos adicionales
-- **admin**: Administrador con acceso completo
+- **admin**: Administrador con acceso completo (gestión de usuarios, platos, mesas, pedidos)
+- **moderator**: Moderador con permisos intermedios
+- **waiter**: Mesero (crear pedidos, ver mesas y platos)
 
 ### Componente PrivateRoute Mejorado
 ```jsx
@@ -117,24 +182,16 @@ El sistema implementa un mecanismo de control de acceso basado en roles de usuar
 
 ### Comportamiento de Redirecciones
 - **Usuario no autenticado**: Redirigido a `/login`
-- **Usuario sin rol requerido**: Redirigido según su rol actual:
-  - Admin → `/admin`
-  - Moderator → `/moderator`
-  - User → `/dashboard`
+- **Usuario sin rol requerido**: Redirigido según su rol actual
 
-### Rutas Protegidas
-- `/dashboard`: Acceso para cualquier usuario autenticado
-- `/admin`: Solo para usuarios con rol `admin`
-- `/moderator`: Solo para usuarios con rol `moderator`
-
-## 📝 Próximas Funcionalidades (Sprint 1.2)
-
-- [ ] Crear AuthContext básico (login/logout)
-- [ ] Crear componentes Navbar y PrivateRoute
-- [ ] Crear páginas Login y Register (solo UI)
-- [ ] Gestión de menú
-- [ ] Sistema de pedidos
-- [ ] Panel de administración
+### Rutas Disponibles
+- `/`: Página de inicio
+- `/login`, `/register`: Autenticación
+- `/dashboard`: Dashboard general
+- `/admin`: Panel de administración
+- `/moderator`: Panel de moderador
+- `/waiter/orders/create`: Formulario de pedidos para meseros
+- `/chef/orders`: Cola de pedidos para cocina
 
 ## 🤝 Contribución
 

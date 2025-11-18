@@ -22,7 +22,7 @@ export const TablesProvider = ({ children }) => {
     try {
       const result = await tablesService.getAllTables(params);
       if (result.success) {
-        setTables(result.data);
+        setTables(result.data.data || []); // Extract the data array from the response
       } else {
         setError(result.error);
       }
@@ -102,7 +102,7 @@ export const TablesProvider = ({ children }) => {
 
   const setTableStatus = useCallback(async (id, status) => {
     // status could be { occupied: true/false } or similar
-    const table = tables.find(t => t.id === id);
+    const table = Array.isArray(tables) ? tables.find(t => t.id === id) : null;
     if (!table) {
       const errorMessage = 'Mesa no encontrada';
       setError(errorMessage);
@@ -115,12 +115,12 @@ export const TablesProvider = ({ children }) => {
   }, [tables, updateTable]);
 
   const getTableById = useCallback((id) => {
-    return tables.find(t => t.id === id);
+    return Array.isArray(tables) ? tables.find(t => t.id === id) : null;
   }, [tables]);
 
   const getAvailableTables = useCallback(() => {
     // assuming table.available === true means available
-    return tables.filter(t => t.available !== false && !t.occupied);
+    return Array.isArray(tables) ? tables.filter(t => t.available !== false && !t.occupied) : [];
   }, [tables]);
 
   const clearError = useCallback(() => setError(null), []);

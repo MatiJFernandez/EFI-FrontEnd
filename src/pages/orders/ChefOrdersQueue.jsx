@@ -192,9 +192,9 @@ const ChefOrdersQueue = () => {
           <Grid container spacing={3}>
             {ordersByStatus.map(order => {
               const table = getTableById(order.tableId);
-              
+
               return (
-                <Grid item xs={12} md={6} lg={4} key={order.id}>
+                <Grid key={order.id} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' } }}>
                   <Card
                     sx={{
                       height: '100%',
@@ -319,4 +319,3 @@ const ChefOrdersQueue = () => {
 };
 
 export default ChefOrdersQueue;
-
