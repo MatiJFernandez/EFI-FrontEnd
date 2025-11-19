@@ -27,13 +27,16 @@ import {
   CheckCircle as CheckCircleIcon,
   Refresh as RefreshIcon
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { useOrders } from '../../context/OrdersContext';
 import { useDishes } from '../../context/DishesContext';
 import { useTables } from '../../context/TablesContext';
 import { useToast } from '../../context/ToastContext';
+import ordersService from '../../services/orders/ordersService';
 
 const ChefOrdersQueue = () => {
   const { orders, loading, error, updateOrderStatus, fetchOrders } = useOrders();
+  const navigate = useNavigate();
   const { dishes, getDishById } = useDishes();
   const { tables, getTableById } = useTables();
   const { showToast } = useToast();
@@ -42,17 +45,20 @@ const ChefOrdersQueue = () => {
 
   // Estados posibles de los pedidos
   const statusTabs = [
-    { value: 'pending', label: 'Pendientes', color: 'warning' },
-    { value: 'preparing', label: 'En Preparación', color: 'info' },
-    { value: 'ready', label: 'Listos', color: 'success' },
-    { value: 'delivered', label: 'Entregados', color: 'default' }
+    { value: 'pending',      label: 'Pendientes',     color: 'warning' },
+    { value: 'in_progress',  label: 'En preparación', color: 'info' },
+    { value: 'completed',    label: 'Servidos',       color: 'success' },
+    { value: 'cancelled',    label: 'Cancelados',     color: 'error' }
   ];
 
   // Filtrar pedidos por estado
   const ordersByStatus = useMemo(() => {
     const status = statusTabs[selectedTab]?.value;
     if (!status) return [];
-    return orders.filter(order => order.status === status);
+    return (orders || [])
+      .filter(order => order && order.status === status)
+      // ocultar pedidos sin items para evitar errores
+      .filter(order => Array.isArray(order.items) && order.items.length > 0);
   }, [orders, selectedTab]);
 
   // Función para cambiar el estado de un pedido
@@ -69,11 +75,10 @@ const ChefOrdersQueue = () => {
   // Obtener etiqueta del estado
   const getStatusLabel = (status) => {
     const statusMap = {
-      'pending': 'Pendiente',
-      'preparing': 'En Preparación',
-      'ready': 'Listo',
-      'delivered': 'Entregado',
-      'cancelled': 'Cancelado'
+      pending: 'Pendiente',
+      in_progress: 'En preparación',
+      completed: 'Servido',
+      cancelled: 'Cancelado'
     };
     return statusMap[status] || status;
   };
@@ -81,11 +86,10 @@ const ChefOrdersQueue = () => {
   // Obtener color del estado
   const getStatusColor = (status) => {
     const colorMap = {
-      'pending': 'warning',
-      'preparing': 'info',
-      'ready': 'success',
-      'delivered': 'default',
-      'cancelled': 'error'
+      pending: 'warning',
+      in_progress: 'info',
+      completed: 'success',
+      cancelled: 'error'
     };
     return colorMap[status] || 'default';
   };
@@ -93,9 +97,8 @@ const ChefOrdersQueue = () => {
   // Obtener siguiente estado posible
   const getNextStatus = (currentStatus) => {
     const statusFlow = {
-      'pending': 'preparing',
-      'preparing': 'ready',
-      'ready': 'delivered'
+      pending: 'in_progress',
+      in_progress: 'completed'
     };
     return statusFlow[currentStatus];
   };
@@ -103,9 +106,8 @@ const ChefOrdersQueue = () => {
   // Obtener estados anteriores posibles (para retroceso)
   const getPreviousStatus = (currentStatus) => {
     const statusFlow = {
-      'preparing': 'pending',
-      'ready': 'preparing',
-      'delivered': 'ready'
+      in_progress: 'pending',
+      completed: 'in_progress'
     };
     return statusFlow[currentStatus];
   };
@@ -128,12 +130,12 @@ const ChefOrdersQueue = () => {
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
+      <Paper elevation={0} sx={{ p: 4, border: '1px solid', borderColor: 'divider', borderRadius: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <LocalDiningIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-            <Typography variant="h4" component="h1">
-              Cola de Pedidos
+            <Typography variant="h4" component="h1" sx={{ fontWeight: 800 }}>
+              Cola de <Box component="span" sx={{ color: 'primary.main' }}>Pedidos</Box>
             </Typography>
           </Box>
           <Button
@@ -170,7 +172,7 @@ const ChefOrdersQueue = () => {
                       label={orders.filter(o => o.status === tab.value).length}
                       size="small"
                       color={tab.color}
-                      sx={{ minWidth: 24, height: 24 }}
+                      sx={{ minWidth: 24, height: 22 }}
                     />
                   </Box>
                 }
@@ -189,22 +191,29 @@ const ChefOrdersQueue = () => {
             No hay pedidos en estado "{statusTabs[selectedTab]?.label}"
           </Alert>
         ) : (
-          <Grid container spacing={3}>
+          <Grid container spacing={3} sx={{ maxWidth: 1100, mx: 'auto' }}>
             {ordersByStatus.map(order => {
               const table = getTableById(order.tableId);
 
               return (
-                <Grid key={order.id} sx={{ width: { xs: '100%', md: '50%', lg: '33.33%' } }}>
+                <Grid key={order.id} item xs={12} sm={6} md={4} lg={4} xl={4}>
                   <Card
                     sx={{
                       height: '100%',
+                      minHeight: 160,
                       display: 'flex',
                       flexDirection: 'column',
                       border: '1px solid',
-                      borderColor: 'divider'
+                      borderColor: 'divider',
+                      borderRadius: 3,
+                      transition: 'transform .15s ease, box-shadow .2s ease',
+                      '&:hover': {
+                        transform: 'translateY(-3px)',
+                        boxShadow: '0 10px 28px rgba(255,122,29,0.12)'
+                      }
                     }}
                   >
-                    <CardContent sx={{ flexGrow: 1 }}>
+                    <CardContent sx={{ flexGrow: 1, py: 3 }}>
                       {/* Header del pedido */}
                       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', mb: 2 }}>
                         <Box>
@@ -225,18 +234,18 @@ const ChefOrdersQueue = () => {
                       <Divider sx={{ my: 2 }} />
 
                       {/* Items del pedido */}
-                      <Typography variant="subtitle2" gutterBottom>
+                      <Typography variant="subtitle2" gutterBottom sx={{ color: 'text.secondary' }}>
                         Platos:
                       </Typography>
                       <List dense>
-                        {order.items?.map((item, index) => {
+                        {(Array.isArray(order.items) ? order.items : []).map((item, index) => {
                           const dish = getDishById(item.dishId);
                           return (
                             <ListItem key={index} sx={{ px: 0 }}>
                               <ListItemText
                                 primary={
                                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <Typography variant="body2">
+                                    <Typography variant="body2" sx={{ color: 'text.primary' }}>
                                       {dish?.name || `Plato #${item.dishId}`}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
@@ -275,14 +284,30 @@ const ChefOrdersQueue = () => {
                         <Typography variant="subtitle2">
                           Total:
                         </Typography>
-                        <Typography variant="h6" color="primary">
-                          ${order.total?.toFixed(2) || '0.00'}
+                        <Typography variant="h6" color="primary" sx={{ fontWeight: 800 }}>
+                          ${Number(order.total ?? 0).toFixed(2)}
                         </Typography>
                       </Box>
                     </CardContent>
 
                     {/* Botones de acción */}
                     <Box sx={{ p: 2, pt: 0, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => navigate(`/orders/${order.id}`)}
+                        fullWidth
+                      >
+                        Ver detalle
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => ordersService.downloadOrderTicket(order.id, `comanda-${order.id}.pdf`)}
+                        fullWidth
+                      >
+                        Imprimir Comanda
+                      </Button>
                       {getPreviousStatus(order.status) && (
                         <Button
                           variant="outlined"
@@ -299,11 +324,10 @@ const ChefOrdersQueue = () => {
                           size="small"
                           onClick={() => handleStatusChange(order.id, getNextStatus(order.status))}
                           fullWidth
-                          color={getNextStatus(order.status) === 'ready' ? 'success' : 'primary'}
+                          color={getNextStatus(order.status) === 'completed' ? 'success' : 'primary'}
                         >
-                          {getNextStatus(order.status) === 'preparing' && 'Comenzar Preparación'}
-                          {getNextStatus(order.status) === 'ready' && 'Marcar como Listo'}
-                          {getNextStatus(order.status) === 'delivered' && 'Marcar como Entregado'}
+                          {getNextStatus(order.status) === 'in_progress' && 'Comenzar preparación'}
+                          {getNextStatus(order.status) === 'completed' && 'Marcar como Servido'}
                         </Button>
                       )}
                     </Box>

@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import ordersService from '../services/orders/ordersService';
 import orderDetailsService from '../services/orderDetails/orderDetailsService';
 import { useAuth } from './AuthContext';
+import { useToast } from './ToastContext';
 
 const OrdersContext = createContext();
 
@@ -18,6 +19,7 @@ export const OrdersProvider = ({ children }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { showToast } = useToast();
 
   // Fetch all orders
   const fetchOrders = useCallback(async () => {
@@ -32,7 +34,7 @@ export const OrdersProvider = ({ children }) => {
     try {
       const result = await ordersService.getAllOrders();
       if (result.success) {
-        setOrders(result.data.data || []); // Extract the data array from the response
+        setOrders(result.data?.data || []);
       } else {
         setError(result.error);
       }
@@ -51,16 +53,20 @@ export const OrdersProvider = ({ children }) => {
     try {
       const result = await ordersService.createOrder(orderData);
       if (result.success) {
-        setOrders(prev => [...prev, result.data]);
-        return { success: true, order: result.data };
+        const created = result.data?.data || result.data;
+        setOrders(prev => [...prev, created]);
+        showToast('Pedido creado', 'success');
+        return { success: true, order: created };
       } else {
         setError(result.error);
+        showToast(result.error || 'Error al crear el pedido', 'error');
         return { success: false, error: result.error };
       }
     } catch (err) {
       console.error('Error creating order:', err);
       const errorMessage = 'Error al crear el pedido';
       setError(errorMessage);
+      showToast(errorMessage, 'error');
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -74,18 +80,22 @@ export const OrdersProvider = ({ children }) => {
     try {
       const result = await ordersService.updateOrder(id, orderData);
       if (result.success) {
-        setOrders(prev => prev.map(order =>
-          order.id === id ? result.data : order
-        ));
-        return { success: true, order: result.data };
+        const updated = result.data?.data || result.data;
+        setOrders(prev => prev.map(order => (
+          order.id === id ? updated : order
+        )));
+        showToast('Pedido actualizado', 'success');
+        return { success: true, order: updated };
       } else {
         setError(result.error);
+        showToast(result.error || 'Error al actualizar el pedido', 'error');
         return { success: false, error: result.error };
       }
     } catch (err) {
       console.error('Error updating order:', err);
       const errorMessage = 'Error al actualizar el pedido';
       setError(errorMessage);
+      showToast(errorMessage, 'error');
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -99,18 +109,22 @@ export const OrdersProvider = ({ children }) => {
     try {
       const result = await ordersService.updateOrderStatus(id, status);
       if (result.success) {
-        setOrders(prev => prev.map(order =>
-          order.id === id ? result.data : order
-        ));
-        return { success: true, order: result.data };
+        const updated = result.data?.data || result.data;
+        setOrders(prev => prev.map(order => (
+          order.id === id ? updated : order
+        )));
+        showToast('Estado de pedido actualizado', 'success');
+        return { success: true, order: updated };
       } else {
         setError(result.error);
+        showToast(result.error || 'Error al actualizar el estado del pedido', 'error');
         return { success: false, error: result.error };
       }
     } catch (err) {
       console.error('Error updating order status:', err);
       const errorMessage = 'Error al actualizar el estado del pedido';
       setError(errorMessage);
+      showToast(errorMessage, 'error');
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -125,15 +139,18 @@ export const OrdersProvider = ({ children }) => {
       const result = await ordersService.deleteOrder(id);
       if (result.success) {
         setOrders(prev => prev.filter(order => order.id !== id));
+        showToast('Pedido eliminado', 'success');
         return { success: true };
       } else {
         setError(result.error);
+        showToast(result.error || 'Error al eliminar el pedido', 'error');
         return { success: false, error: result.error };
       }
     } catch (err) {
       console.error('Error deleting order:', err);
       const errorMessage = 'Error al eliminar el pedido';
       setError(errorMessage);
+      showToast(errorMessage, 'error');
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);

@@ -29,7 +29,6 @@ import { useDishes } from '../context/DishesContext';
 import { useTables } from '../context/TablesContext';
 import { useOrders } from '../context/OrdersContext';
 import OrdersList from './OrdersList';
-import WaiterTables from './WaiterTables';
 
 const ModeratorDashboard = () => {
   const { user } = useAuth();
@@ -51,7 +50,6 @@ const ModeratorDashboard = () => {
 
   const tabs = [
     { label: 'Resumen', icon: <AnalyticsIcon /> },
-    { label: 'Mesas', icon: <TableIcon /> },
     { label: 'Pedidos', icon: <OrdersIcon /> },
     { label: 'Platos', icon: <RestaurantIcon /> }
   ];
@@ -66,13 +64,13 @@ const ModeratorDashboard = () => {
           </Avatar>
           <Box>
             <Typography variant="h4" component="h1" gutterBottom>
-              Panel de Moderación
+              Panel de Cocina
             </Typography>
             <Typography variant="h6" color="text.secondary">
-              {user?.firstName || user?.username} - Moderador
+              {user?.firstName || user?.username} - Cocinero
             </Typography>
             <Chip
-              label="Moderador"
+              label="Cocinero"
               color="warning"
               icon={<PeopleIcon />}
               sx={{ mt: 1 }}
@@ -91,12 +89,12 @@ const ModeratorDashboard = () => {
           </Button>
           <Button
             component={Link}
-            to="/waiter/orders/create"
+            to="/chef/orders"
             variant="contained"
             color="primary"
             startIcon={<AssignmentIcon />}
           >
-            Crear Nuevo Pedido
+            Ir a Cola de Cocina
           </Button>
         </Box>
       </Paper>
@@ -208,14 +206,13 @@ const ModeratorDashboard = () => {
           <Grid item xs={12}>
             <Alert severity="info" sx={{ mt: 2 }}>
               <Typography variant="subtitle2" gutterBottom>
-                Funciones disponibles como Moderador:
+                Funciones disponibles como Cocinero:
               </Typography>
               <Typography variant="body2">
-                • Gestionar pedidos y su estado<br/>
-                • Ver disponibilidad de mesas<br/>
-                • Crear nuevos pedidos<br/>
-                • Supervisar el menú de platos<br/>
-                • Acceso limitado a funciones administrativas
+                • Ver todos los pedidos de cocina<br/>
+                • Cambiar estado: Pendiente → En preparación → Servido<br/>
+                • Ver detalles de platos y cantidades del pedido<br/>
+                • Supervisar el menú en modo lectura
               </Typography>
             </Alert>
           </Grid>
@@ -223,16 +220,6 @@ const ModeratorDashboard = () => {
       )}
 
       {activeTab === 1 && (
-        /* Mesas */
-        <Box>
-          <Typography variant="h5" gutterBottom>
-            🪑 Estado de las Mesas
-          </Typography>
-          <WaiterTables />
-        </Box>
-      )}
-
-      {activeTab === 2 && (
         /* Pedidos */
         <Box>
           <Typography variant="h5" gutterBottom>
@@ -242,7 +229,7 @@ const ModeratorDashboard = () => {
         </Box>
       )}
 
-      {activeTab === 3 && (
+      {activeTab === 2 && (
         /* Platos */
         <Box>
           <Typography variant="h5" gutterBottom>

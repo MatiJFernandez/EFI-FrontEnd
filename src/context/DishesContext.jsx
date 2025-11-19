@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import dishesService from '../services/dishes/dishesService';
+import { useToast } from './ToastContext';
 
 const DishesContext = createContext();
 
@@ -15,6 +16,7 @@ export const DishesProvider = ({ children }) => {
   const [dishes, setDishes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { showToast } = useToast();
 
   // Fetch all dishes
   const fetchDishes = useCallback(async (params = {}) => {
@@ -42,16 +44,20 @@ export const DishesProvider = ({ children }) => {
     try {
       const result = await dishesService.createDish(dishData);
       if (result.success) {
-        setDishes(prev => [...prev, result.data]);
-        return { success: true, dish: result.data };
+        const created = result.data?.data || result.data;
+        setDishes(prev => [...prev, created]);
+        showToast('Plato creado correctamente', 'success');
+        return { success: true, dish: created };
       } else {
         setError(result.error);
+        showToast(result.error || 'Error al crear el plato', 'error');
         return { success: false, error: result.error };
       }
     } catch (err) {
       console.error('Error creating dish:', err);
       const errorMessage = 'Error al crear el plato';
       setError(errorMessage);
+      showToast(errorMessage, 'error');
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -65,18 +71,22 @@ export const DishesProvider = ({ children }) => {
     try {
       const result = await dishesService.updateDish(id, dishData);
       if (result.success) {
-        setDishes(prev => prev.map(dish =>
-          dish.id === id ? result.data : dish
-        ));
-        return { success: true, dish: result.data };
+        const updated = result.data?.data || result.data;
+        setDishes(prev => prev.map(dish => (
+          dish.id === id ? updated : dish
+        )));
+        showToast('Plato actualizado', 'success');
+        return { success: true, dish: updated };
       } else {
         setError(result.error);
+        showToast(result.error || 'Error al actualizar el plato', 'error');
         return { success: false, error: result.error };
       }
     } catch (err) {
       console.error('Error updating dish:', err);
       const errorMessage = 'Error al actualizar el plato';
       setError(errorMessage);
+      showToast(errorMessage, 'error');
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -91,15 +101,18 @@ export const DishesProvider = ({ children }) => {
       const result = await dishesService.deleteDish(id);
       if (result.success) {
         setDishes(prev => prev.filter(dish => dish.id !== id));
+        showToast('Plato eliminado', 'success');
         return { success: true };
       } else {
         setError(result.error);
+        showToast(result.error || 'Error al eliminar el plato', 'error');
         return { success: false, error: result.error };
       }
     } catch (err) {
       console.error('Error deleting dish:', err);
       const errorMessage = 'Error al eliminar el plato';
       setError(errorMessage);
+      showToast(errorMessage, 'error');
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);

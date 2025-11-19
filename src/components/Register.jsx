@@ -11,7 +11,11 @@ import {
   Box,
   Alert,
   Link as MuiLink,
-  Grid
+  Grid,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import { validateField, validateForm } from '../utils/validations';
 
@@ -22,7 +26,8 @@ const Register = () => {
     email: '',
     username: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'user' // por defecto: mesero
   });
   const [formErrors, setFormErrors] = useState({});
   const [error, setError] = useState('');
@@ -210,6 +215,24 @@ const Register = () => {
                   error={!!formErrors.confirmPassword}
                   helperText={formErrors.confirmPassword}
                 />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel id="role-label">Rol</InputLabel>
+                  <Select
+                    labelId="role-label"
+                    id="role"
+                    name="role"
+                    label="Rol"
+                    value={formData.role}
+                    onChange={handleChange}
+                  >
+                    {/* Frontend roles: user (mesero), moderator (cocinero), admin (administrador) */}
+                    <MenuItem value="user">Mesero</MenuItem>
+                    <MenuItem value="moderator">Cocinero</MenuItem>
+                    <MenuItem value="admin">Administrador</MenuItem>
+                  </Select>
+                </FormControl>
               </Grid>
             </Grid>
             <Button

@@ -95,25 +95,23 @@ const CustomerTicket = ({ order, onDownload }) => {
     });
   };
 
-  // Get status color
+  // Get status color (map backend statuses)
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending': return 'warning';
-      case 'preparing': return 'info';
-      case 'ready': return 'success';
-      case 'delivered': return 'default';
+      case 'in_progress': return 'info';
+      case 'completed': return 'success';
       case 'cancelled': return 'error';
       default: return 'default';
     }
   };
 
-  // Get status label in Spanish
+  // Get status label in Spanish (map backend statuses)
   const getStatusLabel = (status) => {
     switch (status) {
       case 'pending': return 'Pendiente';
-      case 'preparing': return 'Preparando';
-      case 'ready': return 'Listo';
-      case 'delivered': return 'Entregado';
+      case 'in_progress': return 'En preparación';
+      case 'completed': return 'Servido';
       case 'cancelled': return 'Cancelado';
       default: return status;
     }

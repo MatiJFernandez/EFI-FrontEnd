@@ -60,7 +60,7 @@ const ordersService = {
   // Actualizar el estado de un pedido
   updateOrderStatus: async (id, status) => {
     try {
-      const response = await api.patch(`/orders/${id}/status`, { status });
+      const response = await api.put(`/orders/${id}`, { status });
       return { success: true, data: response.data };
     } catch (error) {
       console.error('Error updating order status:', error);
@@ -97,8 +97,30 @@ const ordersService = {
         error: error.response?.data?.message || 'Error al obtener los pedidos'
       };
     }
+  },
+
+  // Descargar Ticket/Comanda PDF
+  downloadOrderTicket: async (id, filename = `pedido-${Date.now()}.pdf`) => {
+    try {
+      const response = await api.get(`/orders/${id}/ticket`, { responseType: 'blob' });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      return { success: true };
+    } catch (error) {
+      console.error('Error downloading order ticket:', error);
+      return {
+        success: false,
+        error: error.response?.data?.message || 'Error al descargar el PDF del pedido'
+      };
+    }
   }
 };
 
 export default ordersService;
-

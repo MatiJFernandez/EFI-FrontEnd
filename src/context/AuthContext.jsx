@@ -22,9 +22,11 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
     const storedToken = localStorage.getItem('token');
-    
-    if (currentUser && storedToken) {
-      setUser(currentUser);
+    const storedUserRaw = localStorage.getItem('user');
+
+    const restoredUser = currentUser || (storedUserRaw ? JSON.parse(storedUserRaw) : null);
+    if (restoredUser && storedToken) {
+      setUser(restoredUser);
       setToken(storedToken);
       setIsAuthenticated(true);
     }
@@ -36,7 +38,17 @@ export const AuthProvider = ({ children }) => {
       const result = await authService.login(credentials);
       
       if (result.success) {
-        setUser(result.user);
+        const loggedUser = result.user || result.data?.user;
+        const loggedToken = result.token || result.data?.token || localStorage.getItem('token');
+
+        if (loggedToken) {
+          localStorage.setItem('token', loggedToken);
+          setToken(loggedToken);
+        }
+        if (loggedUser) {
+          localStorage.setItem('user', JSON.stringify(loggedUser));
+          setUser(loggedUser);
+        }
         setIsAuthenticated(true);
         return true;
       } else {
@@ -52,6 +64,11 @@ export const AuthProvider = ({ children }) => {
     authService.logout();
     setUser(null);
     setIsAuthenticated(false);
+    setToken(null);
+    try {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    } catch {}
   };
 
   const forgotPassword = async (email) => {

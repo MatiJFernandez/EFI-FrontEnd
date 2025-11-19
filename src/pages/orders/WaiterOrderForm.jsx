@@ -30,6 +30,7 @@ import { useOrders } from '../../context/OrdersContext';
 import { useTables } from '../../context/TablesContext';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
+import { useLocation } from 'react-router-dom';
 
 const WaiterOrderForm = () => {
   const { dishes, getAvailableDishes } = useDishes();
@@ -40,7 +41,7 @@ const WaiterOrderForm = () => {
 
   const [selectedTable, setSelectedTable] = useState('');
   const [orderItems, setOrderItems] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
+  // Ya no pedimos categoría en el flujo del mesero
   const [notes, setNotes] = useState('');
 
   const availableDishes = useMemo(() => {
@@ -51,23 +52,44 @@ const WaiterOrderForm = () => {
     return getAvailableTables();
   }, [tables, getAvailableTables]);
 
-  const filteredDishes = useMemo(() => {
-    if (!selectedCategory) return availableDishes;
-    return availableDishes.filter(dish => dish.category === selectedCategory);
-  }, [availableDishes, selectedCategory]);
+  const filteredDishes = useMemo(() => availableDishes, [availableDishes]);
 
-  const categories = useMemo(() => {
-    return [...new Set(availableDishes.map(dish => dish.category))];
-  }, [availableDishes]);
+  // Sin categorías
+
+  // Preseleccionar mesa desde query string (tableId)
+  const location = useLocation();
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tableIdParam = params.get('tableId');
+    if (!tableIdParam) return;
+    // Si la mesa está disponible en la lista, preseleccionarla
+    const tid = Number(tableIdParam);
+    if (Number.isFinite(tid)) {
+      const exists = availableTables.some(t => t.id === tid);
+      if (exists) setSelectedTable(String(tid));
+    }
+  }, [location.search, availableTables]);
 
   // Calcular el total en tiempo real
   const total = useMemo(() => {
     return orderItems.reduce((sum, item) => {
       const dish = availableDishes.find(d => d.id === item.dishId);
       if (!dish) return sum;
-      return sum + (dish.price * item.quantity);
+      const priceNum = Number(dish.price ?? 0);
+      return sum + (priceNum * item.quantity);
     }, 0);
   }, [orderItems, availableDishes]);
+
+  // Cantidad actual en el pedido para un plato
+  const getItemQty = (dishId) => orderItems.find(i => i.dishId === dishId)?.quantity || 0;
+
+  // Scroll a resumen (para FAB móvil)
+  const summaryRef = React.useRef(null);
+  const scrollToSummary = () => {
+    if (summaryRef.current) {
+      summaryRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   // Agregar plato al pedido
   const handleAddDish = (dishId) => {
@@ -122,10 +144,10 @@ const WaiterOrderForm = () => {
     }
 
     const orderData = {
-      tableId: selectedTable,
+      tableId: Number(selectedTable),
       items: orderItems.map(item => ({
-        dishId: item.dishId,
-        quantity: item.quantity
+        dishId: Number(item.dishId),
+        quantity: Number(item.quantity)
       })),
       notes: notes.trim() || undefined,
       waiterId: user?.id
@@ -139,27 +161,31 @@ const WaiterOrderForm = () => {
       setOrderItems([]);
       setSelectedTable('');
       setNotes('');
-      setSelectedCategory('');
+      // nada
     } else {
       showToast(result.error || 'Error al crear el pedido', 'error');
     }
   };
 
   return (
+    <>
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 4 }}>
+      <Paper elevation={0} sx={{ p: 4, borderRadius: 3, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
           <RestaurantIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-          <Typography variant="h4" component="h1">
-            Crear Nuevo Pedido
+          <Typography variant="h4" component="h1" fontWeight={700}>
+            Crear Pedido
           </Typography>
         </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Seleccioná una mesa disponible y agregá los platos al pedido. Podés ajustar cantidades antes de confirmarlo.
+        </Typography>
 
         <Grid container spacing={3}>
           {/* Columna izquierda: Selección de mesa y platos */}
           <Grid item xs={12} md={7}>
             {/* Selección de mesa */}
-            <Paper variant="outlined" sx={{ p: 3, mb: 3 }}>
+            <Paper variant="outlined" sx={{ p: 3, mb: 3, borderRadius: 2 }}>
               <Typography variant="h6" gutterBottom>
                 Seleccionar Mesa
               </Typography>
@@ -183,47 +209,30 @@ const WaiterOrderForm = () => {
               </FormControl>
             </Paper>
 
-            {/* Filtro de categorías */}
-            <Box sx={{ mb: 3 }}>
-              <FormControl size="small" sx={{ minWidth: 200 }}>
-                <InputLabel>Categoría</InputLabel>
-                <Select
-                  value={selectedCategory}
-                  label="Categoría"
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                >
-                  <MenuItem value="">Todas las categorías</MenuItem>
-                  {categories.map(category => (
-                    <MenuItem key={category} value={category}>
-                      {category}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
+            {/* Sin filtro de categorías para agilizar el flujo del mesero */}
 
             {/* Lista de platos disponibles */}
-            <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+            <Typography variant="h6" gutterBottom sx={{ mb: 2, fontWeight: 600 }}>
               Platos Disponibles
             </Typography>
             <Grid container spacing={2}>
               {filteredDishes.length === 0 ? (
                 <Grid item xs={12}>
-                  <Alert severity="info">
+                  <Alert severity="info" variant="outlined">
                     No hay platos disponibles en esta categoría.
                   </Alert>
                 </Grid>
               ) : (
                 filteredDishes.map(dish => (
                   <Grid item xs={12} sm={6} key={dish.id}>
-                    <Card variant="outlined" sx={{ height: '100%' }}>
+                    <Card variant="outlined" sx={{ height: '100%', borderRadius: 2, transition: 'transform .15s ease', '&:hover': { transform: 'translateY(-2px)', boxShadow: 3 } }}>
                       <CardContent>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', mb: 1 }}>
                           <Typography variant="h6" sx={{ flexGrow: 1 }}>
                             {dish.name}
                           </Typography>
                           <Chip
-                            label={`$${dish.price?.toFixed(2) || '0.00'}`}
+                            label={`$${Number(dish.price ?? 0).toFixed(2)}`}
                             color="primary"
                             size="small"
                           />
@@ -238,15 +247,26 @@ const WaiterOrderForm = () => {
                             {dish.category}
                           </Typography>
                         )}
-                        <Button
-                          variant="contained"
-                          size="small"
-                          startIcon={<AddIcon />}
-                          onClick={() => handleAddDish(dish.id)}
-                          fullWidth
-                        >
-                          Agregar al Pedido
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          <Button
+                            variant="contained"
+                            color={getItemQty(dish.id) > 0 ? 'primary' : 'success'}
+                            size="small"
+                            startIcon={<AddIcon />}
+                            onClick={() => handleAddDish(dish.id)}
+                            sx={{ flex: 1 }}
+                          >
+                            {getItemQty(dish.id) > 0 ? 'Agregar otro' : 'Agregar al Pedido'}
+                          </Button>
+                          {getItemQty(dish.id) > 0 && (
+                            <Chip
+                              label={`x${getItemQty(dish.id)}`}
+                              color="secondary"
+                              size="small"
+                              sx={{ alignSelf: 'center' }}
+                            />
+                          )}
+                        </Box>
                       </CardContent>
                     </Card>
                   </Grid>
@@ -256,8 +276,8 @@ const WaiterOrderForm = () => {
           </Grid>
 
           {/* Columna derecha: Resumen del pedido */}
-          <Grid item xs={12} md={5}>
-            <Paper variant="outlined" sx={{ p: 3, position: 'sticky', top: 20 }}>
+          <Grid item xs={12} md={5} ref={summaryRef}>
+            <Paper variant="outlined" sx={{ p: 3, position: { md: 'sticky' }, top: { md: 20 }, borderRadius: 2 }}>
               <Typography variant="h6" gutterBottom>
                 Resumen del Pedido
               </Typography>
@@ -275,9 +295,9 @@ const WaiterOrderForm = () => {
                       if (!dish) return null;
 
                       return (
-                        <Box key={item.dishId} sx={{ mb: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                        <Box key={item.dishId} sx={{ mb: 2, p: 2, bgcolor: 'background.default', borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
                           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                            <Typography variant="subtitle1" sx={{ flexGrow: 1 }}>
+                            <Typography variant="subtitle1" sx={{ flexGrow: 1, color: 'text.primary' }}>
                               {dish.name}
                             </Typography>
                             <IconButton
@@ -291,12 +311,14 @@ const WaiterOrderForm = () => {
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <IconButton
                               size="small"
+                              color="inherit"
                               onClick={() => handleUpdateQuantity(item.dishId, item.quantity - 1)}
                             >
                               <RemoveIcon />
                             </IconButton>
                             <TextField
                               type="number"
+                              variant="outlined"
                               value={item.quantity}
                               onChange={(e) => handleUpdateQuantity(item.dishId, parseInt(e.target.value) || 0)}
                               inputProps={{ min: 1, style: { textAlign: 'center' } }}
@@ -305,12 +327,13 @@ const WaiterOrderForm = () => {
                             />
                             <IconButton
                               size="small"
+                              color="inherit"
                               onClick={() => handleUpdateQuantity(item.dishId, item.quantity + 1)}
                             >
                               <AddIcon />
                             </IconButton>
-                            <Typography variant="body2" color="text.secondary" sx={{ ml: 'auto' }}>
-                              ${(dish.price * item.quantity).toFixed(2)}
+                            <Typography variant="body1" sx={{ ml: 'auto', color: 'text.primary', fontWeight: 600 }}>
+                              ${Number((Number(dish.price ?? 0) * item.quantity) || 0).toFixed(2)}
                             </Typography>
                           </Box>
                         </Box>
@@ -344,6 +367,7 @@ const WaiterOrderForm = () => {
                   {/* Botón crear pedido */}
                   <Button
                     variant="contained"
+                    color="success"
                     size="large"
                     fullWidth
                     onClick={handleCreateOrder}
@@ -366,6 +390,15 @@ const WaiterOrderForm = () => {
         </Grid>
       </Paper>
     </Container>
+    {/* FAB móvil para ver resumen */}
+    {orderItems.length > 0 && (
+      <Box sx={{ position: 'fixed', right: 16, bottom: 16, display: { xs: 'block', md: 'none' } }}>
+        <Button variant="contained" color="primary" onClick={scrollToSummary} sx={{ borderRadius: 999 }}>
+          Ver pedido ({orderItems.reduce((s,i)=>s+i.quantity,0)})
+        </Button>
+      </Box>
+    )}
+    </>
   );
 };
 

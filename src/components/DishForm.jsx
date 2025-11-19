@@ -6,8 +6,7 @@ const initialState = {
   name: '',
   description: '',
   price: '',
-  category: '',
-  image: ''
+  category: ''
 };
 
 const categories = [
@@ -85,20 +84,13 @@ const DishForm = ({ initialData = initialState, onSubmit, loading = false }) => 
             <MenuItem key={cat} value={cat}>{cat}</MenuItem>
           ))}
         </TextField>
-        <TextField
-          label="Imagen (URL)"
-          name="image"
-          value={formData.image}
-          onChange={handleChange}
-          error={!!formErrors.image}
-          helperText={formErrors.image}
-        />
         <Button type="submit" variant="contained" color="primary" disabled={loading}>
           {loading ? 'Guardando...' : (initialData && initialData.id ? 'Actualizar' : 'Agregar')}
         </Button>
       </Box>
     </Paper>
   );
-};
+}
+;
 
 export default DishForm;

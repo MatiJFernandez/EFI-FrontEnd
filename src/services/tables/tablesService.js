@@ -24,7 +24,17 @@ export const tablesService = {
 
       const url = `/tables${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await api.get(url);
-      return { success: true, data: response.data };
+      // Mapear status -> disponible/available en los items si vienen en data.data
+      const payload = { ...response.data };
+      if (payload && Array.isArray(payload.data)) {
+        payload.data = payload.data.map((t) => ({
+          ...t,
+          // disponible/available derivados del status del backend
+          disponible: t.status ? t.status === 'available' : t.disponible,
+          available: t.status ? t.status === 'available' : t.available
+        }));
+      }
+      return { success: true, data: payload };
     } catch (error) {
       console.error('Error fetching tables:', error);
       return {
@@ -42,7 +52,15 @@ export const tablesService = {
   async getTableById(id) {
     try {
       const response = await api.get(`/tables/${id}`);
-      return { success: true, data: response.data };
+      const payload = { ...response.data };
+      if (payload && payload.data) {
+        payload.data = {
+          ...payload.data,
+          disponible: payload.data.status ? payload.data.status === 'available' : payload.data.disponible,
+          available: payload.data.status ? payload.data.status === 'available' : payload.data.available
+        };
+      }
+      return { success: true, data: payload };
     } catch (error) {
       console.error('Error fetching table:', error);
       return {
@@ -59,7 +77,15 @@ export const tablesService = {
    */
   async createTable(tableData) {
     try {
-      const response = await api.post('/tables', tableData);
+      // Mapear disponible/available -> status
+      const payload = { ...tableData };
+      if (payload.disponible !== undefined) {
+        payload.status = payload.disponible ? 'available' : 'occupied';
+      } else if (payload.available !== undefined) {
+        payload.status = payload.available ? 'available' : 'occupied';
+      }
+      const { disponible, available, ...clean } = payload;
+      const response = await api.post('/tables', clean);
       return { success: true, data: response.data };
     } catch (error) {
       console.error('Error creating table:', error);
@@ -78,7 +104,15 @@ export const tablesService = {
    */
   async updateTable(id, tableData) {
     try {
-      const response = await api.put(`/tables/${id}`, tableData);
+      // Mapear disponible/available -> status
+      const payload = { ...tableData };
+      if (payload.disponible !== undefined) {
+        payload.status = payload.disponible ? 'available' : 'occupied';
+      } else if (payload.available !== undefined) {
+        payload.status = payload.available ? 'available' : 'occupied';
+      }
+      const { disponible, available, ...clean } = payload;
+      const response = await api.put(`/tables/${id}`, clean);
       return { success: true, data: response.data };
     } catch (error) {
       console.error('Error updating table:', error);

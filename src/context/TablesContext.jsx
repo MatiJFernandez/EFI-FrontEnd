@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import tablesService from '../services/tables/tablesService';
+import { useToast } from './ToastContext';
 
 const TablesContext = createContext();
 
@@ -15,6 +16,7 @@ export const TablesProvider = ({ children }) => {
   const [tables, setTables] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { showToast } = useToast();
 
   const fetchTables = useCallback(async (params = {}) => {
     setLoading(true);
@@ -41,15 +43,18 @@ export const TablesProvider = ({ children }) => {
       const result = await tablesService.createTable(tableData);
       if (result.success) {
         setTables(prev => [...prev, result.data]);
+        showToast('Mesa creada correctamente', 'success');
         return { success: true, table: result.data };
       } else {
         setError(result.error);
+        showToast(result.error || 'Error al crear la mesa', 'error');
         return { success: false, error: result.error };
       }
     } catch (err) {
       console.error('Error creating table:', err);
       const errorMessage = 'Error al crear la mesa';
       setError(errorMessage);
+      showToast(errorMessage, 'error');
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -63,15 +68,18 @@ export const TablesProvider = ({ children }) => {
       const result = await tablesService.updateTable(id, tableData);
       if (result.success) {
         setTables(prev => prev.map(t => (t.id === id ? result.data : t)));
+        showToast('Mesa actualizada', 'success');
         return { success: true, table: result.data };
       } else {
         setError(result.error);
+        showToast(result.error || 'Error al actualizar la mesa', 'error');
         return { success: false, error: result.error };
       }
     } catch (err) {
       console.error('Error updating table:', err);
       const errorMessage = 'Error al actualizar la mesa';
       setError(errorMessage);
+      showToast(errorMessage, 'error');
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -85,15 +93,18 @@ export const TablesProvider = ({ children }) => {
       const result = await tablesService.deleteTable(id);
       if (result.success) {
         setTables(prev => prev.filter(t => t.id !== id));
+        showToast('Mesa eliminada', 'success');
         return { success: true };
       } else {
         setError(result.error);
+        showToast(result.error || 'Error al eliminar la mesa', 'error');
         return { success: false, error: result.error };
       }
     } catch (err) {
       console.error('Error deleting table:', err);
       const errorMessage = 'Error al eliminar la mesa';
       setError(errorMessage);
+      showToast(errorMessage, 'error');
       return { success: false, error: errorMessage };
     } finally {
       setLoading(false);
@@ -119,8 +130,12 @@ export const TablesProvider = ({ children }) => {
   }, [tables]);
 
   const getAvailableTables = useCallback(() => {
-    // assuming table.available === true means available
-    return Array.isArray(tables) ? tables.filter(t => t.available !== false && !t.occupied) : [];
+    // Backend usa status: 'available' | 'occupied' | 'reserved'
+    return Array.isArray(tables) ? tables.filter(t => t.status === 'available') : [];
+  }, [tables]);
+
+  const getOccupiedTables = useCallback(() => {
+    return Array.isArray(tables) ? tables.filter(t => t.status === 'occupied') : [];
   }, [tables]);
 
   const clearError = useCallback(() => setError(null), []);
@@ -140,6 +155,7 @@ export const TablesProvider = ({ children }) => {
     setTableStatus,
     getTableById,
     getAvailableTables,
+    getOccupiedTables,
     clearError
   };
 

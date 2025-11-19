@@ -4,8 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { useDishes } from '../context/DishesContext';
 import { useTables } from '../context/TablesContext';
 import { useOrders } from '../context/OrdersContext';
-import DishesTest from './DishesTest';
+import DishesList from './DishesList';
 import OrdersList from './OrdersList';
+import TableList from './TableList';
 import {
   Container,
   Typography,
@@ -55,12 +56,13 @@ const Dashboard = () => {
 
   const tabs = [
     { label: 'Resumen', icon: <AnalyticsIcon /> },
+    { label: 'Mesas', icon: <TableIcon /> },
     { label: 'Platos', icon: <RestaurantIcon /> },
     { label: 'Pedidos', icon: <OrdersIcon /> }
   ];
 
-  // Determinar si el usuario puede crear pedidos (waiter, moderator, admin)
-  const canCreateOrders = ['admin', 'moderator', 'waiter'].includes(user?.role);
+  // Determinar si el usuario puede crear pedidos: solo Mesero (user)
+  const canCreateOrders = user?.role === 'user';
 
   // Determinar si el usuario puede acceder a la cola de cocina (chef, admin, moderator)
   const canAccessKitchen = ['admin', 'moderator', 'chef'].includes(user?.role);
@@ -74,48 +76,51 @@ const Dashboard = () => {
             <DashboardIcon sx={{ fontSize: 30 }} />
           </Avatar>
           <Box>
-            <Typography variant="h4" component="h1" gutterBottom>
-              ¡Bienvenido a tu Dashboard!
-            </Typography>
-            <Typography variant="h6" color="text.secondary">
-              {user?.firstName || user?.username}
-            </Typography>
-            <Box sx={{ mt: 1 }}>
-              <Chip
-                label={
-                  user?.role === 'admin' ? 'Administrador' :
-                  user?.role === 'moderator' ? 'Moderador' :
-                  user?.role === 'waiter' ? 'Mesero' : 'Usuario'
-                }
-                color={
-                  user?.role === 'admin' ? 'error' :
-                  user?.role === 'moderator' ? 'warning' :
-                  user?.role === 'waiter' ? 'info' : 'primary'
-                }
-                icon={user?.role === 'admin' ? <AdminIcon /> : undefined}
-              />
-            </Box>
+            {user?.role === 'admin' ? (
+              <>
+                <Typography variant="h4" component="h1" gutterBottom>
+                  ¡Bienvenido, {user?.firstName || user?.username}!
+                </Typography>
+                <Typography variant="subtitle1" sx={{ mt: 0.5 }}>
+                  Tu Rol: <strong>Administrador</strong>
+                </Typography>
+              </>
+            ) : (
+              <>
+                <Typography variant="h4" component="h1" gutterBottom>
+                  ¡Bienvenido a tu Dashboard!
+                </Typography>
+                <Typography variant="h6" color="text.secondary">
+                  {user?.firstName || user?.username}
+                </Typography>
+                <Box sx={{ mt: 1 }}>
+                  <Chip
+                    label={
+                      user?.role === 'admin' ? 'Administrador' :
+                      user?.role === 'moderator' ? 'Cocinero' :
+                      user?.role === 'user' ? 'Mesero' : 'Usuario'
+                    }
+                    color={
+                      user?.role === 'admin' ? 'error' :
+                      user?.role === 'moderator' ? 'warning' :
+                      user?.role === 'user' ? 'info' : 'primary'
+                    }
+                    icon={user?.role === 'admin' ? <AdminIcon /> : undefined}
+                  />
+                </Box>
+              </>
+            )}
           </Box>
         </Box>
 
-        {/* Role-based navigation */}
+        {/* Role-based navigation (oculto para admin) */}
+        {user?.role !== 'admin' && (
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" gutterBottom>
             Paneles Disponibles:
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-            {user?.role === 'admin' && (
-              <Button
-                component={Link}
-                to="/admin"
-                variant="contained"
-                color="error"
-                startIcon={<AdminIcon />}
-                size="large"
-              >
-                Panel Administrador
-              </Button>
-            )}
+            {/* Sin Panel Administrador: gestión unificada en Dashboard */}
 
             {user?.role === 'moderator' && (
               <Button
@@ -126,7 +131,7 @@ const Dashboard = () => {
                 startIcon={<PeopleIcon />}
                 size="large"
               >
-                Panel Moderador
+                Panel Cocinero
               </Button>
             )}
 
@@ -167,6 +172,7 @@ const Dashboard = () => {
             </Button>
           </Box>
         </Box>
+        )}
       </Paper>
 
       {/* Tabs Navigation */}
@@ -194,21 +200,23 @@ const Dashboard = () => {
       {/* Tab Content */}
       {activeTab === 0 && (
         /* Resumen */
-        <Grid container spacing={3}>
+        <Grid container spacing={3} sx={{ maxWidth: 1100, mx: 'auto' }}>
           {/* Estadísticas principales */}
-          <Grid item xs={12}>
-            <Typography variant="h5" gutterBottom>
-              📊 Resumen General
-            </Typography>
-          </Grid>
+          {user?.role !== 'admin' && (
+            <Grid item xs={12}>
+              <Typography variant="h5" gutterBottom>
+                📊 Resumen General
+              </Typography>
+            </Grid>
+          )}
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
+            <Card sx={{ borderRadius: 3, minHeight: 150 }}>
+              <CardContent sx={{ py: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <RestaurantIcon color="primary" />
                   <Box>
-                    <Typography variant="h4">{stats.availableDishes}</Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 800 }}>{stats.availableDishes}</Typography>
                     <Typography variant="body2" color="text.secondary">
                       Platos Disponibles
                     </Typography>
@@ -222,12 +230,12 @@ const Dashboard = () => {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
+            <Card sx={{ borderRadius: 3, minHeight: 150 }}>
+              <CardContent sx={{ py: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <TableIcon color="secondary" />
                   <Box>
-                    <Typography variant="h4">{stats.availableTables}</Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 800 }}>{stats.availableTables}</Typography>
                     <Typography variant="body2" color="text.secondary">
                       Mesas Disponibles
                     </Typography>
@@ -241,12 +249,12 @@ const Dashboard = () => {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
+            <Card sx={{ borderRadius: 3, minHeight: 150 }}>
+              <CardContent sx={{ py: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <OrdersIcon color="warning" />
                   <Box>
-                    <Typography variant="h4">{stats.totalOrders}</Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 800 }}>{stats.totalOrders}</Typography>
                     <Typography variant="body2" color="text.secondary">
                       Pedidos Totales
                     </Typography>
@@ -257,17 +265,14 @@ const Dashboard = () => {
           </Grid>
 
           <Grid item xs={12} sm={6} md={3}>
-            <Card>
-              <CardContent>
+            <Card sx={{ borderRadius: 3, minHeight: 150 }}>
+              <CardContent sx={{ py: 3 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <PeopleIcon color="info" />
                   <Box>
-                    <Typography variant="h4">{stats.activeOrders}</Typography>
+                    <Typography variant="h4" sx={{ fontWeight: 800 }}>{stats.activeOrders}</Typography>
                     <Typography variant="body2" color="text.secondary">
                       Pedidos Activos
-                    </Typography>
-                    <Typography variant="caption" color="warning.main">
-                      {stats.pendingOrders} pendientes
                     </Typography>
                   </Box>
                 </Box>
@@ -275,38 +280,50 @@ const Dashboard = () => {
             </Card>
           </Grid>
 
-          {/* Información del rol */}
+          {/* Información del rol (oculta para admin) */}
+          {user?.role !== 'admin' && (
           <Grid item xs={12}>
             <Alert severity="info" sx={{ mt: 2 }}>
               <Typography variant="subtitle2" gutterBottom>
                 Tu Rol: {user?.role === 'admin' ? 'Administrador' :
-                         user?.role === 'moderator' ? 'Moderador' :
-                         user?.role === 'waiter' ? 'Mesero' :
+                         user?.role === 'moderator' ? 'Cocinero' :
+                         user?.role === 'user' ? 'Mesero' :
                          user?.role === 'chef' ? 'Cocinero' : 'Usuario'}
               </Typography>
               <Typography variant="body2">
                 {user?.role === 'admin' && 'Tienes acceso completo a todas las funciones administrativas del sistema.'}
-                {user?.role === 'moderator' && 'Puedes gestionar pedidos, mesas y supervisar el menú.'}
-                {user?.role === 'waiter' && 'Puedes crear pedidos y gestionar mesas asignadas.'}
+                {user?.role === 'moderator' && 'Puedes gestionar el estado de preparación de los pedidos (Cocina).'}
+                {user?.role === 'user' && 'Puedes crear pedidos y gestionar mesas asignadas.'}
                 {user?.role === 'chef' && 'Puedes gestionar el estado de preparación de los pedidos.'}
                 {user?.role === 'customer' && 'Puedes ver el menú y realizar pedidos básicos.'}
               </Typography>
             </Alert>
           </Grid>
+          )}
         </Grid>
       )}
 
       {activeTab === 1 && (
+        /* Mesas (CRUD admin) / Visor para otros roles */
+        <Box>
+          <Typography variant="h5" gutterBottom>
+            🪑 Gestión de Mesas
+          </Typography>
+          <TableList />
+        </Box>
+      )}
+
+      {activeTab === 2 && (
         /* Platos */
         <Box>
           <Typography variant="h5" gutterBottom>
             🍽️ Menú de Platos
           </Typography>
-          <DishesTest />
+          <DishesList />
         </Box>
       )}
 
-      {activeTab === 2 && (
+      {activeTab === 3 && (
         /* Pedidos */
         <Box>
           <Typography variant="h5" gutterBottom>

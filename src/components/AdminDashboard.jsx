@@ -29,13 +29,14 @@ import { useAuth } from '../context/AuthContext';
 import { useDishes } from '../context/DishesContext';
 import { useTables } from '../context/TablesContext';
 import { useOrders } from '../context/OrdersContext';
-import AdminTables from './AdminTables';
 import DishForm from './DishForm';
-import OrdersList from './OrdersList';
+import OrdersBoard from './OrdersBoard';
+import DishList from './DishList';
+import TableList from './TableList';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
-  const { dishes, loading: dishesLoading } = useDishes();
+  const { dishes, loading: dishesLoading, createDish, fetchDishes } = useDishes();
   const { tables, loading: tablesLoading } = useTables();
   const { orders, loading: ordersLoading } = useOrders();
 
@@ -238,7 +239,23 @@ const AdminDashboard = () => {
           <Typography variant="h5" gutterBottom>
             🍽️ Gestión de Platos
           </Typography>
-          <DishForm onSubmit={(data) => { console.log('Plato enviado:', data); }} />
+          <DishForm onSubmit={async (data) => {
+            const payload = {
+              name: data.name,
+              description: data.description,
+              price: Number(data.price),
+              // 'available' no está en el form; el backend lo setea default true
+            };
+            const result = await createDish(payload);
+            if (result?.success) {
+              // refrescar listado y volver al resumen
+              await fetchDishes();
+              setActiveTab(0);
+            }
+          }} />
+
+          {/* Listado de platos (responsive cards) */}
+          <DishList />
         </Box>
       )}
 
@@ -248,17 +265,14 @@ const AdminDashboard = () => {
           <Typography variant="h5" gutterBottom>
             🪑 Gestión de Mesas
           </Typography>
-          <AdminTables />
+          <TableList />
         </Box>
       )}
 
       {activeTab === 3 && (
         /* Pedidos */
         <Box>
-          <Typography variant="h5" gutterBottom>
-            📋 Gestión de Pedidos
-          </Typography>
-          <OrdersList />
+          <OrdersBoard />
         </Box>
       )}
     </Container>
